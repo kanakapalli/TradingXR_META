@@ -8,24 +8,25 @@
 
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 namespace Meta.Voice.Samples.Dictation
 {
     public class SimpleLabelResizer : MonoBehaviour
     {
-        [SerializeField] private TextMeshProUGUI _label;
+        [SerializeField] private Text _label;
         private string _text;
 
         private void Reset()
         {
-            _label = gameObject.GetComponent<TextMeshProUGUI>();
+            _label = gameObject.GetComponent<Text>();
         }
 
         private void Awake()
         {
             if (_label == null)
             {
-                _label = gameObject.GetComponent<TextMeshProUGUI>();
+                _label = gameObject.GetComponent<Text>();
             }
         }
 

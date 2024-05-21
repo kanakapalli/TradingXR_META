@@ -17,6 +17,14 @@ namespace Meta.Voice.Samples.Dictation
         [FormerlySerializedAs("dictation")]
         [SerializeField] private DictationService _dictation;
 
+        private void Update()
+        {
+            if (Input.GetKey(KeyCode.Space))
+            {
+                ToggleActivation();
+            }
+        }
+
         public void ToggleActivation()
         {
             if (_dictation.MicActive)
