@@ -7,6 +7,7 @@
  */
 
 using Meta.WitAi.Dictation;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -21,7 +22,7 @@ namespace Meta.Voice.Samples.Dictation
         {
             if (Input.GetKey(KeyCode.Space))
             {
-                ToggleActivation();
+                _dictation.ActivateImmediately();
             }
         }
 
