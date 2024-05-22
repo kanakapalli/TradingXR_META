@@ -4,11 +4,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using Meta.Voice.Samples.Dictation;
+using Unity.Jobs;
 
 public class API_Call : MonoBehaviour
 {
     //[SerializeField] TextMeshProUGUI m_Test_Text;
-    [SerializeField] GameObject m_Stock_Button;
+    [SerializeField] internal GameObject m_Stock_Button;
     [SerializeField] Transform m_Stock_Button_Parent;
     [SerializeField] internal Transform m_Stock_Target_Point;
     [SerializeField] internal GameObject m_Stock_Prefab;
