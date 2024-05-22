@@ -4,7 +4,6 @@ using Oculus.Voice;
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -20,6 +19,7 @@ public class listner : MonoBehaviour
     [SerializeField] List<Dict> m_Demo_Dict = new List<Dict>();
 
     private string gainLose = "https://assisntak.web.app/topgainerlossers";
+    private bool _intent_found = false;
 
     public void GetStocksIntent(string[] values)
     {
@@ -28,6 +28,8 @@ public class listner : MonoBehaviour
         string _stock_name = values[1];
 
         Debug.Log("<color=blue>" + _stock_name + "</color>");
+        Debug.Log("<color=blue>" + _intent + "</color>");
+        _intent_found = true;
 
         var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, Quaternion.identity);
         //Assigning Overview and Detail URL
@@ -64,6 +66,8 @@ public class listner : MonoBehaviour
         string _stock_name = values[1];
 
         Debug.Log("<color=blue>" + _stock_name + "</color>");
+        Debug.Log("<color=blue>" + _intent + "</color>");
+        _intent_found = true;
 
         int _res = GetIndex(_stock_name);
         Dict _dict;
@@ -95,6 +99,8 @@ public class listner : MonoBehaviour
         string _stock_name = values[1];
 
         Debug.Log("<color=blue>" + _stock_name + "</color>");
+        Debug.Log("<color=blue>" + _intent + "</color>");
+        _intent_found = true;
 
         int _res = GetIndex(_stock_name);
         Dict _dict;
@@ -153,6 +159,32 @@ public class listner : MonoBehaviour
         m_PalmMenuExampleButtonHandlers.ToggleRotationEnabled();
         m_PalmMenuController.DeactivateAllScreens();
         m_AppVoiceExperience.Deactivate();
+    }
+
+    public void ConfirmIntent()
+    {
+        StartCoroutine(CheckIntent());
+    }
+
+    private IEnumerator CheckIntent()
+    {
+        yield return new WaitForSeconds(2f);
+        if (_intent_found)
+        {
+            Debug.Log("<color=green>" + "Intent Found" + "</color>");
+        }
+        else
+        {
+            Debug.Log("<color=green>" + "Intent Not Found Perform Action "+ "</color>");
+            IntentNotFoundAction();
+        }
+        yield return new WaitForSeconds(1f);
+        _intent_found = false;
+    }
+
+    private void IntentNotFoundAction()
+    {
+        Debug.Log("<color=green>" + "Intent Not Found Action Method Triggered " + "</color>");
     }
 
     [System.Serializable]
