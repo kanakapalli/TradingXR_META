@@ -20,10 +20,14 @@ public class StockData
     public string Industry { get; set; }
 }
 
+
+[System.Serializable]
 public struct StockStruct
 {
     public string Name;
     public string Symbol;
+    public string Last_Sale;
+    public string Percent_Change;
     public string Price;
     public string Percent;
     public string Overview_URL;

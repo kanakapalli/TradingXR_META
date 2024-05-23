@@ -7,6 +7,7 @@ public class Activation : MonoBehaviour
 {
     [FormerlySerializedAs("dictation")]
     [SerializeField] private DictationService _dictation;
+    [SerializeField] private MultiRequestTranscription _transcription;
 
     private void Update()
     {
@@ -36,7 +37,9 @@ public class Activation : MonoBehaviour
     private IEnumerator Activate()
     {
         _dictation.ActivateImmediately();
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(.8f);
         FindObjectOfType<API_Call>().OnEnterPress();
+        yield return new WaitForSeconds(0.4f);
+        _transcription.Clear();
     }
 }
