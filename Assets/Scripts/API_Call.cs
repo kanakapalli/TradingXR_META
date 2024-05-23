@@ -39,9 +39,9 @@ public class API_Call : MonoBehaviour
     [SerializeField] internal bool m_InitStarted;
     [SerializeField] internal bool m_InitEnded;
 
-    void Start()
+    private void Awake()
     {
-        //OnEnterPress(); // For Testing
+        OnEnterPress(); // For Testing
 
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
 
@@ -115,26 +115,26 @@ public class API_Call : MonoBehaviour
         if (m_ReconstructionIndex < m_TrackSize)
         {
             //DestroyList();
-            yield return new WaitForSeconds(.1f);
+            yield return new WaitForSeconds(.001f);
             m_ReconstructionIndex++;
             for (int i = 0; i < 5; i++)
             {
                 InstantiatePrefab();
                 m_ObjectIndex++;
             }
-            yield return new WaitForSeconds(.2f);
+            yield return new WaitForSeconds(.002f);
             m_Ended = false;
         }
         else if (m_LeftSize > 0)
         {
             //DestroyList();
-            yield return new WaitForSeconds(.1f);
+            yield return new WaitForSeconds(.001f);
             for (int i = 0; i < m_LeftSize; i++)
             {
                 InstantiatePrefab();
                 m_ObjectIndex++;
             }
-            yield return new WaitForSeconds(.2f);
+            yield return new WaitForSeconds(.002f);
             m_Ended = false;
         }
     }
@@ -177,7 +177,7 @@ public class API_Call : MonoBehaviour
                 yield return null;
             }
         }*/
-        yield return new WaitForSeconds(.2f);
+        yield return new WaitForSeconds(.002f);
         m_Ended = true;
     }
 
@@ -237,9 +237,9 @@ public class API_Call : MonoBehaviour
             }
             i++;*/
         }
-        yield return new WaitForSeconds(.2f);
+        yield return new WaitForSeconds(.001f);
         InitOptimization();
-        yield return new WaitForSeconds(.2f);
+        yield return new WaitForSeconds(.001f);
         StartCoroutine(Next_Reconstruction()); // For Testing
         #endregion
     }
