@@ -30763,7 +30763,8 @@ GameObject:
   - component: {fileID: 1319758886428422755}
   - component: {fileID: 6481543028121234291}
   - component: {fileID: 908034695744647012}
-  m_Layer: 0
+  - component: {fileID: -4574708770359547932}
+  m_Layer: 6
   m_Name: Vuplex
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -30847,6 +30848,9 @@ MonoBehaviour:
   _twoGrabTransformer: {fileID: 6481543028121234291}
   _targetTransform: {fileID: 0}
   _maxGrabPoints: -1
+  _rigidbody: {fileID: 0}
+  _kinematicWhileSelected: 1
+  _throwWhenUnselected: 1
 --- !u!114 &5938855026146323684
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30866,6 +30870,9 @@ MonoBehaviour:
   _twoGrabTransformer: {fileID: 0}
   _targetTransform: {fileID: 0}
   _maxGrabPoints: -1
+  _rigidbody: {fileID: 0}
+  _kinematicWhileSelected: 1
+  _throwWhenUnselected: 1
 --- !u!114 &2150481958615875781
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30906,6 +30913,9 @@ MonoBehaviour:
   _twoGrabTransformer: {fileID: 0}
   _targetTransform: {fileID: 0}
   _maxGrabPoints: -1
+  _rigidbody: {fileID: 0}
+  _kinematicWhileSelected: 1
+  _throwWhenUnselected: 1
 --- !u!114 &8673074670869572880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -30946,6 +30956,9 @@ MonoBehaviour:
   _twoGrabTransformer: {fileID: 0}
   _targetTransform: {fileID: 0}
   _maxGrabPoints: -1
+  _rigidbody: {fileID: 0}
+  _kinematicWhileSelected: 1
+  _throwWhenUnselected: 1
 --- !u!114 &4386955416751805652
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -31130,6 +31143,21 @@ MonoBehaviour:
   m_CanvasWebView: {fileID: 8824982455372286286}
   m_Overview_Url: asdf
   m_Detail_Url: fdsa
+--- !u!114 &-4574708770359547932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4662202859626273283}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 822aeec12d4e95947a1160729a594bac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  deletableLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!1 &4678465275273362267
 GameObject:
   m_ObjectHideFlags: 0

@@ -89,4 +89,22 @@ public class HeadGaze : MonoBehaviour
             }
         }
     }
+
+    public void DeleteTab()
+    {
+        // Cast a ray from the camera
+        Ray ray = mainCamera.ViewportPointToRay(new Vector3(0.5f, 0.5f, 0));
+        RaycastHit hit;
+
+        if (Physics.Raycast(ray, out hit, maxRayDistance, targetLayer))
+        {
+            // Check if the hit object has the DeletableObject component
+            DeletableObject deletableObject = hit.collider.GetComponent<DeletableObject>();
+            if (deletableObject != null && deletableObject.CanBeDeleted())
+            {
+                // Delete the object
+                Destroy(hit.collider.gameObject);
+            }
+        }
+    }
 }
