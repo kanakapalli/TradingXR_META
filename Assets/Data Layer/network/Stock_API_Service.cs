@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 
 public class StockApiService
@@ -29,8 +30,10 @@ public class StockApiService
             {
                 try
                 {
-                    var response = JsonConvert.DeserializeObject<StockDataResponse>(webRequest.downloadHandler.text);
-                    onSuccess?.Invoke(response.Data);
+                    /*var response = JsonConvert.DeserializeObject<StockDataResponse>(webRequest.downloadHandler.text);
+                    onSuccess?.Invoke(response.Data);*/
+                    var response = JsonDatahandler.HandleJsonData(webRequest.downloadHandler.text);
+                    onSuccess?.Invoke(response.m_Results);
                 }
                 catch (System.Exception ex)
                 {
