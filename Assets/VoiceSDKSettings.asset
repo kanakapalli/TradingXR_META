@@ -33,9 +33,9 @@ MonoBehaviour:
     isPrivate: 1
     createdAt: 2024-05-20T06:25:54-0700
     trainingStatus: 1
-    lastTrainDuration: 69
-    lastTrainedAt: 2024-05-20T09:15:42-0700
-    nextTrainAt: 2024-05-20T09:14:33-0700
+    lastTrainDuration: 77
+    lastTrainedAt: 2024-05-20T22:16:56-0700
+    nextTrainAt: 2024-05-20T22:15:39-0700
     intents:
     - id: 798280905594084
       name: get_news
@@ -625,4 +625,4 @@ MonoBehaviour:
   - Oculus.Voice.Demo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - Meta.WitAi.Samples, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   relaxedResolution: 0
-  _lastRefreshSeconds: 1716268024.0433066
+  _lastRefreshSeconds: 1716525760.5788424
