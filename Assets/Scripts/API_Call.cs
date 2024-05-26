@@ -39,9 +39,12 @@ public class API_Call : MonoBehaviour
     [SerializeField] internal bool m_InitStarted;
     [SerializeField] internal bool m_InitEnded;
 
+    [SerializeField] internal string m_Prev_Url;
+    [SerializeField] internal string m_Next_Url;
+
     private void Awake()
     {
-        OnEnterPress(); // For Testing
+        StartCoroutine(Testing());
 
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
 
@@ -67,6 +70,17 @@ public class API_Call : MonoBehaviour
             m_VR_Keyboard.transform.position = m_Stock_Target_Point.position;
             m_VR_Keyboard.transform.rotation = Quaternion.identity;
         }
+    }
+
+    private IEnumerator Testing()
+    {
+        OnEnterPress(); // For Testing
+        yield return new WaitForSeconds(2f);
+        StartCoroutine(Next_Reconstruction()); // For Testing
+        yield return new WaitForSeconds(2f);
+        StartCoroutine(Next_Reconstruction()); // For Testing
+        yield return new WaitForSeconds(2f);
+        StartCoroutine(Next_Reconstruction()); // For Testing
     }
 
     private void InitOptimization()
@@ -110,9 +124,17 @@ public class API_Call : MonoBehaviour
         }
     }
 
+    private void Reconstruction()
+    {
+        foreach (var stock in m_StockDataList)
+        {
+            InstantiatePrefab();
+        }
+    }
+
     private IEnumerator Next_Reconstruction()
     {
-        if (m_ReconstructionIndex < m_TrackSize)
+        /*        if (m_ReconstructionIndex < m_TrackSize)
         {
             //DestroyList();
             yield return new WaitForSeconds(.001f);
@@ -136,7 +158,11 @@ public class API_Call : MonoBehaviour
             }
             yield return new WaitForSeconds(.002f);
             m_Ended = false;
-        }
+        }*/
+
+        NextStockList();
+        yield return new WaitForSeconds(.002f);
+        m_Ended = false;
     }
 
     private IEnumerator Previous_Reconstruction()
@@ -240,7 +266,8 @@ public class API_Call : MonoBehaviour
         yield return new WaitForSeconds(.001f);
         InitOptimization();
         yield return new WaitForSeconds(.001f);
-        StartCoroutine(Next_Reconstruction()); // For Testing
+        // StartCoroutine(Next_Reconstruction()); // For Testing
+        Reconstruction();
         #endregion
     }
 
@@ -252,13 +279,50 @@ public class API_Call : MonoBehaviour
 
     public void OnEnterPress()
     {
-        StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError));
+        DestroyClearAllList();
+        StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Current));
         m_InputField.text = "";
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
         m_VR_Keyboard.transform.position = Vector3.zero;
     }
 
+    public void NextStockList()
+    {
+        StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Next));
+    }
+
+    public void PrevStockList()
+    {
+        StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Previous));
+    }
+
     private void DestroyClearList()
+    {
+        /*foreach (var item in m_List)
+        {
+            Destroy(item);
+        }
+
+        foreach (var item in m_Instantiated_PrefabList)
+        {
+            Destroy(item);
+        }
+
+        m_List.Clear();
+        m_Instantiated_PrefabList.Clear();*/
+        m_StockDataList.Clear();
+
+
+        //Set Default Value
+        m_TrackSize = 0;
+        m_LeftSize = 0;
+        m_ReconstructionIndex = 0;
+        m_ObjectIndex = 0;
+
+        m_Ended = false;
+    }
+
+    private void DestroyClearAllList()
     {
         foreach (var item in m_List)
         {

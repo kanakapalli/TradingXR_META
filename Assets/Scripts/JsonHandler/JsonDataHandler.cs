@@ -19,6 +19,10 @@ public class JsonDatahandler
         Debug.Log($"Next: {next}");
         Debug.Log($"Previous: {previous}");
 
+        API_Call m_API = GameObject.FindObjectOfType<API_Call>().GetComponent<API_Call>();
+        m_API.m_Prev_Url = previous;
+        m_API.m_Next_Url = next;
+
         // Extract and print stock data
         JArray results = (JArray)jsonObject["data"]["results"];
         foreach (JToken result in results)
