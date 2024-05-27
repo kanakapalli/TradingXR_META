@@ -25,76 +25,50 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ae5a46bda3295124c99b0e6537ac7252, type: 3}
   m_Name: VoiceSDKSettings
   m_EditorClassIdentifier: 
-  _clientAccessToken: 5RAQFKAWUEGWQUWSS7KJHVS77OEXJ6XE
+  _clientAccessToken: 7XRL5NBOR6556EF7BMDW5CFDBCBBRDTI
   _appInfo:
-    name: test
-    id: 1496419574620017
+    name: tradingxr
+    id: 387213393849417
     lang: en
     isPrivate: 1
-    createdAt: 2024-05-20T06:25:54-0700
+    createdAt: 2023-12-24T10:15:12-0800
     trainingStatus: 1
-    lastTrainDuration: 77
-    lastTrainedAt: 2024-05-20T22:16:56-0700
-    nextTrainAt: 2024-05-20T22:15:39-0700
+    lastTrainDuration: 57
+    lastTrainedAt: 2024-05-10T15:32:03-0700
+    nextTrainAt: 2024-05-10T15:31:06-0700
     intents:
-    - id: 798280905594084
+    - id: 1175825010437663
       name: get_news
-      entities:
-      - name: Stock_Name:Stock_Name
-        id: 417761397693931
-    - id: 1494092681523528
+      entities: []
+    - id: 964483594919781
       name: get_stock
       entities:
-      - name: Stock_Name:Stock_Name
-        id: 417761397693931
-    - id: 1614882739309000
-      name: get_trend
+      - name: wit_stock_name:wit_stock_name
+        id: 334918559264338
+    - id: 968589317879642
+      name: get_stock_news
       entities:
-      - name: Stock_Name:Stock_Name
-        id: 417761397693931
+      - name: wit_stock_name:wit_stock_name
+        id: 334918559264338
     entities:
-    - name: Action
-      id: 814577173924725
+    - name: wit_stock_name
+      id: 977855777257501
       lookups:
       - free-text
       - keywords
       roles:
-      - name: Action
-        id: 804008981337266
-      keywords: []
-    - name: Stock_Name
-      id: 469430982322076
-      lookups:
-      - free-text
-      - keywords
-      roles:
-      - name: Stock_Name
-        id: 417761397693931
+      - name: wit_stock_name
+        id: 334918559264338
       keywords:
-      - keyword: Apple
-        synonyms:
-        - apple
-      - keyword: Apple
-        synonyms:
-        - apple
-      - keyword: Apple
-        synonyms:
-        - apple
-      - keyword: Google
-        synonyms:
-        - google
-      - keyword: Netflix
-        synonyms:
-        - netflix
-      - keyword: Stock
-        synonyms:
-        - stock
       - keyword: apple
         synonyms:
         - apple
-      - keyword: netflix
+      - keyword: sony
         synonyms:
-        - netflix
+        - sony
+      - keyword: tesla
+        synonyms:
+        - tesla
     traits: []
     versionTags: []
     voices:
@@ -625,4 +599,4 @@ MonoBehaviour:
   - Oculus.Voice.Demo, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   - Meta.WitAi.Samples, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
   relaxedResolution: 0
-  _lastRefreshSeconds: 1716525760.5788424
+  _lastRefreshSeconds: 1716801786.362925

@@ -1,3 +1,4 @@
+using Meta.WitAi.CallbackHandlers;
 using Meta.WitAi.TTS.Utilities;
 using Oculus.Interaction.Samples.PalmMenu;
 using Oculus.Voice;
@@ -6,10 +7,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 
 [System.Serializable]
-public class listner : MonoBehaviour
+public class Listner : MonoBehaviour
 {
     [SerializeField] TTSSpeaker m_TTSSpeaker;
     [SerializeField] API_Call m_API_Call;
@@ -17,9 +19,16 @@ public class listner : MonoBehaviour
     [SerializeField] Palm_Menu_Controller m_PalmMenuController;
     [SerializeField] AppVoiceExperience m_AppVoiceExperience;
     [SerializeField] List<Dict> m_Demo_Dict = new List<Dict>();
+    [SerializeField] string m_Listener_Full_Response;
 
     private string gainLose = "https://assisntak.web.app/topgainerlossers";
     private bool _intent_found = false;
+    private int _intent_count = 0;
+
+    private void Start()
+    {
+        
+    }
 
     public void GetStocksIntent(string[] values)
     {
@@ -175,16 +184,57 @@ public class listner : MonoBehaviour
         }
         else
         {
-            Debug.Log("<color=green>" + "Intent Not Found Perform Action "+ "</color>");
-            IntentNotFoundAction();
+            //if (!_intent_found) { yield return null; }
+            IntentAction();
+            if (_intent_found)
+            {
+                Debug.Log("<color=red>" + "Intent Not Found Perform Action " + "</color>");
+                IntentNotFoundAction();
+            }
         }
         yield return new WaitForSeconds(1f);
-        _intent_found = false;
     }
 
     private void IntentNotFoundAction()
     {
-        Debug.Log("<color=green>" + "Intent Not Found Action Method Triggered " + "</color>");
+        LLM m_Response = LLM_Model.Instance.SendRequest(m_Listener_Full_Response);
+        m_TTSSpeaker.Speak(m_Response.result);
+        Debug.Log("<color=red>" + "Intent Not Found Action Method Triggered " + "</color>");
+    }
+
+    private void InitIntent()
+    {
+        _intent_count = 0;
+        _intent_found = false;
+    }
+
+    private void IntentAction()
+    {
+        if (_intent_count < 2)
+        {
+            _intent_count++;
+        }
+        else
+        {
+            _intent_found = true;
+        }
+    }
+
+    public void Begin() //Is called by event listener when command initates.
+    {
+        Debug.Log("Begin");
+        InitIntent();
+    }
+
+    public void End() //Is called by event listener when response completes
+    {
+        Debug.Log("End");
+    }
+
+    public void TranscriptionResult(string m_result)
+    {
+        m_Listener_Full_Response = m_result;
+        Debug.Log("<color=green><b>" + m_result + "</b></color>");
     }
 
     [System.Serializable]
