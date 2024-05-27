@@ -7,13 +7,18 @@ public class HeadGaze : MonoBehaviour
     [SerializeField] private LayerMask targetLayer = ~0;
     [SerializeField] private GameObject cursorPrefab;
 
+    [SerializeField] private bool m_HeadGazeActivate = false;
+
     private GameObject cursorInstance;
 
     private void Update()
     {
-        MoveCamera();
-        DeleteObject();
-        UpdateCursor();
+        if (m_HeadGazeActivate)
+        {
+            MoveCamera();
+            DeleteObject();
+            UpdateCursor();
+        }
     }
 
     private void MoveCamera()
@@ -106,5 +111,10 @@ public class HeadGaze : MonoBehaviour
                 Destroy(hit.collider.gameObject);
             }
         }
+    }
+
+    public void ToggleHeadGaze()
+    {
+        m_HeadGazeActivate = !m_HeadGazeActivate;
     }
 }
