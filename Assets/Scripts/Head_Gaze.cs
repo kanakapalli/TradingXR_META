@@ -9,15 +9,43 @@ public class HeadGaze : MonoBehaviour
 
     [SerializeField] private bool m_HeadGazeActivate = false;
 
+    [SerializeField] private Material m_Default_Material;
+    [SerializeField] private Material m_Custom_Material;
+
+    [SerializeField] private SkinnedMeshRenderer m_Left_Renderer;
+    [SerializeField] private SkinnedMeshRenderer m_Right_Renderer;
+
     private GameObject cursorInstance;
 
     private void Update()
     {
         if (m_HeadGazeActivate)
         {
-            MoveCamera();
+            ApplyMaterial(m_Left_Renderer, m_Custom_Material);
+            ApplyMaterial(m_Right_Renderer, m_Custom_Material);
+
+            //MoveCamera();
             DeleteObject();
             UpdateCursor();
+        }
+        else
+        {
+            ApplyMaterial(m_Left_Renderer, m_Default_Material);
+            ApplyMaterial(m_Right_Renderer, m_Default_Material);
+        }
+    }
+
+    private void ApplyMaterial(SkinnedMeshRenderer renderer, Material material)
+    {
+        Material[] materials = renderer.materials;
+        if (materials.Length > 1) // Ensure the array has the correct length
+        {
+            materials[1] = material;
+            renderer.materials = materials; // Assign the updated materials array back
+        }
+        else
+        {
+            Debug.LogWarning("The materials array does not have the expected length.");
         }
     }
 

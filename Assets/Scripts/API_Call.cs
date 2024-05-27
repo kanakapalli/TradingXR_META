@@ -44,7 +44,7 @@ public class API_Call : MonoBehaviour
 
     private void Awake()
     {
-        StartCoroutine(Testing());
+        // StartCoroutine(Testing());
 
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
 
