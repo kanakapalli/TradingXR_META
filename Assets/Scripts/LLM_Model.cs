@@ -1,6 +1,7 @@
 using System;
 using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
@@ -14,7 +15,7 @@ public class LLM_Model
 
     private LLM_Model() { }
 
-    public LLM SendRequest(string prompt)
+    public async Task<LLM> SendRequestAsync(string prompt)
     {
         // Define the request body
         var requestBody = new
@@ -32,13 +33,13 @@ public class LLM_Model
             StringContent content = new StringContent(jsonRequestBody, Encoding.UTF8, "application/json");
 
             // Send the POST request to the API endpoint
-            HttpResponseMessage response = client.PostAsync(url, content).Result;
+            HttpResponseMessage response = await client.PostAsync(url, content);
 
             // Ensure the request was successful
             if (response.IsSuccessStatusCode)
             {
                 // Read the response content as a string
-                string responseContent = response.Content.ReadAsStringAsync().Result;
+                string responseContent = await response.Content.ReadAsStringAsync();
 
                 // Parse the response content as a JObject
                 JObject jsonResponse = JObject.Parse(responseContent);
@@ -52,6 +53,7 @@ public class LLM_Model
                 Debug.Log("Reply: " + reply);
                 Debug.Log("Chat History: " + chatHistory.ToString());
                 Debug.Log("Chat ID: " + chatId);
+
                 LLM m_LLM_Response = new LLM
                 {
                     result = reply,

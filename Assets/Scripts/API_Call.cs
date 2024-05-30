@@ -44,7 +44,7 @@ public class API_Call : MonoBehaviour
 
     private void Awake()
     {
-        // StartCoroutine(Testing());
+         StartCoroutine(Testing());
 
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
 
@@ -266,7 +266,6 @@ public class API_Call : MonoBehaviour
         yield return new WaitForSeconds(.001f);
         InitOptimization();
         yield return new WaitForSeconds(.001f);
-        // StartCoroutine(Next_Reconstruction()); // For Testing
         Reconstruction();
         #endregion
     }
@@ -298,20 +297,7 @@ public class API_Call : MonoBehaviour
 
     private void DestroyClearList()
     {
-        /*foreach (var item in m_List)
-        {
-            Destroy(item);
-        }
-
-        foreach (var item in m_Instantiated_PrefabList)
-        {
-            Destroy(item);
-        }
-
-        m_List.Clear();
-        m_Instantiated_PrefabList.Clear();*/
         m_StockDataList.Clear();
-
 
         //Set Default Value
         m_TrackSize = 0;
