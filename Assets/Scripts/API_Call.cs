@@ -22,7 +22,11 @@ public class API_Call : MonoBehaviour
     [SerializeField] internal GameObject m_VR_Keyboard;
     [SerializeField] internal Vector3 m_Hide_Vector = new Vector3(.001f, .001f, .001f);
     [SerializeField] internal Vector3 m_Show_Vector = new Vector3(1f, 1f, 1f);
-    private List<GameObject> m_List = new List<GameObject>();
+
+    [Header("Recenter")]
+    [SerializeField] private Transform m_Head;
+    [SerializeField] private Transform m_Origin;
+    [SerializeField] private Transform m_Target;
 
     [Header("Optimization Technique Used (Object Pooling)")]
     [SerializeField] internal List<StockStruct> m_StockDataList = new List<StockStruct>();
@@ -44,8 +48,6 @@ public class API_Call : MonoBehaviour
 
     private void Awake()
     {
-         StartCoroutine(Testing());
-
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
 
         User sampleUser = new User
@@ -62,8 +64,19 @@ public class API_Call : MonoBehaviour
         UserManager.SaveUserData(sampleUser);
     }
 
+    private void Start()
+    {
+        // Testing();
+        Recenter();
+        m_StockScrollRect.onValueChanged.AddListener(OnScrollValueChanged);
+    }
+
     private void Update()
     {
+        if (Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            StartCoroutine(Next_Reconstruction());
+        }
         if (m_InputField.isFocused && m_VR_Keyboard.transform.localScale == m_Hide_Vector)
         {
             m_VR_Keyboard.transform.localScale = m_Show_Vector;
@@ -72,25 +85,35 @@ public class API_Call : MonoBehaviour
         }
     }
 
-    private IEnumerator Testing()
+    private void Testing()
     {
         OnEnterPress(); // For Testing
-        yield return new WaitForSeconds(2f);
-        StartCoroutine(Next_Reconstruction()); // For Testing
-        yield return new WaitForSeconds(2f);
-        StartCoroutine(Next_Reconstruction()); // For Testing
-        yield return new WaitForSeconds(2f);
-        StartCoroutine(Next_Reconstruction()); // For Testing
     }
 
     private void InitOptimization()
     {
         m_TrackSize = m_StockDataList.Count / 5;
         m_LeftSize = m_StockDataList.Count % 5;
-
-        m_StockScrollRect.onValueChanged.AddListener(OnScrollValueChanged);
     }
 
+    private void OnScrollValueChanged(Vector2 scrollPosition)
+    {
+        // Check if the scroll view has reached the right end
+        if (m_StockScrollRect.horizontalNormalizedPosition >= 1f && !m_Ended)
+        {
+            StartCoroutine(Next_Reconstruction());
+            m_Ended = true;
+            Debug.Log("<color=red>Reached End of Scrolling (Right)</color>");
+        }
+        // Check if the scroll view has reached the left end
+        else if (m_StockScrollRect.horizontalNormalizedPosition <= 0f && m_Ended)
+        {
+            StartCoroutine(Previous_Reconstruction());
+            m_Ended = false;
+            Debug.Log("<color=green>Reached Beginning of Scrolling (Left)</color>");
+        }
+    }
+    
     private void InstantiatePrefab()
     {
         StockStruct stock = m_StockDataList[m_ObjectIndex];
@@ -99,29 +122,6 @@ public class API_Call : MonoBehaviour
         m_ins_prefab.transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>().text = stock.Name;
         m_ins_prefab.GetComponent<Vuplex_Data>().InitValues(stock);
         m_Instantiated_PrefabList.Add(m_ins_prefab);
-    }
-
-    private void OnScrollValueChanged(Vector2 scrollPosition)
-    {
-        CheckBeginEnd();
-    }
-
-    private void CheckBeginEnd()
-    {
-        // Check if the scroll view has reached the right end
-        if (m_StockScrollRect.horizontalNormalizedPosition >= 1f && !m_Ended)
-        {
-            m_Ended = true;
-            StartCoroutine(Next_Reconstruction());
-            Debug.Log("<color=red>Reached End of Scrolling (Right)</color>");
-        }
-        // Check if the scroll view has reached the left end
-        else if (m_StockScrollRect.horizontalNormalizedPosition <= 0f && m_Ended)
-        {
-            m_Ended = false;
-            StartCoroutine(Previous_Reconstruction());
-            Debug.Log("<color=green>Reached Beginning of Scrolling (Left)</color>");
-        }
     }
 
     private void Reconstruction()
@@ -134,7 +134,7 @@ public class API_Call : MonoBehaviour
 
     private IEnumerator Next_Reconstruction()
     {
-        /*        if (m_ReconstructionIndex < m_TrackSize)
+        if (m_ReconstructionIndex < m_TrackSize)
         {
             //DestroyList();
             yield return new WaitForSeconds(.001f);
@@ -158,11 +158,20 @@ public class API_Call : MonoBehaviour
             }
             yield return new WaitForSeconds(.002f);
             m_Ended = false;
-        }*/
+        }
+        else if(m_ObjectIndex >= m_StockDataList.Count)
+        {
+            NextStockList();
+            Debug.Log("Next Stock List Fetch Command...");
+        }
+        else
+        {
+            Debug.Log("Last Else Command...");
+        }
 
-        NextStockList();
+        /*NextStockList();
         yield return new WaitForSeconds(.002f);
-        m_Ended = false;
+        m_Ended = false;*/
     }
 
     private IEnumerator Previous_Reconstruction()
@@ -218,21 +227,11 @@ public class API_Call : MonoBehaviour
     private IEnumerator GetData(List<StockData> stockData)
     {
         #region Default Method For Fetching Data
-        //int i = 0;
-
-        /*m_StockDataList.Clear();
-        yield return new WaitForSeconds(.2f);*/
 
         foreach (var stock in stockData)
         {
             //Print the values of the stock name andd symbol and sale
             Debug.Log($"Name: {stock.Name} Stock: {stock.Symbol} - Last Sale: {stock.Last_Sale}");
-
-            //Instantiating the button gameobject and parenting the content of the scroll rect
-            //var m_Button = Instantiate(m_Stock_Button, m_Stock_Button_Parent);
-
-            //Also assiging the values
-            //m_Button.transform.GetChild(0).GetChild(1).GetComponent<TMP_Text>().text = stock.Name;
 
             //Getting The Urls
             string m_overview_url = string.Concat(m_Overview_Base_Url, stock.Symbol, "&exchange=", m_Exchange);
@@ -252,21 +251,16 @@ public class API_Call : MonoBehaviour
 
             //Pushing the data to the m_StockDatalist
             m_StockDataList.Add(m_stock);
-
-            //m_Button.GetComponent<Vuplex_Data>().InitValues(m_stock);
-            //m_List.Add(m_Button);
-
-            /*if (i >= 5)
-            {
-                yield return new WaitForSeconds(0.8f);
-                i = 0;
-            }
-            i++;*/
         }
         yield return new WaitForSeconds(.001f);
+
         InitOptimization();
+
         yield return new WaitForSeconds(.001f);
-        Reconstruction();
+
+        //Reconstruction();
+        StartCoroutine(Next_Reconstruction());
+
         #endregion
     }
 
@@ -310,17 +304,11 @@ public class API_Call : MonoBehaviour
 
     private void DestroyClearAllList()
     {
-        foreach (var item in m_List)
-        {
-            Destroy(item);
-        }
-
         foreach (var item in m_Instantiated_PrefabList)
         {
             Destroy(item);
         }
 
-        m_List.Clear();
         m_Instantiated_PrefabList.Clear();
         m_StockDataList.Clear();
 
@@ -332,5 +320,21 @@ public class API_Call : MonoBehaviour
         m_ObjectIndex = 0;
 
         m_Ended = false;
+    }
+
+    private void Recenter()
+    {
+        Vector3 offset = m_Head.position - m_Origin.position;
+        offset.y = 0;
+        m_Origin.position = m_Target.position - offset;
+
+        Vector3 m_target_forward = m_Target.forward;
+        m_target_forward.y = 0;
+        Vector3 m_camera_forward = m_Head.forward;
+        m_camera_forward.y = 0;
+
+        float m_angle = Vector3.SignedAngle(m_camera_forward, m_target_forward, Vector3.up);
+
+        m_Origin.RotateAround(m_Head.position, Vector3.up, m_angle);
     }
 }
