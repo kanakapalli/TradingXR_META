@@ -67,7 +67,7 @@ public class API_Call : MonoBehaviour
     private void Start()
     {
         // Testing();
-        Recenter();
+        // Recenter();
         m_StockScrollRect.onValueChanged.AddListener(OnScrollValueChanged);
     }
 
@@ -326,7 +326,7 @@ public class API_Call : MonoBehaviour
     {
         Vector3 offset = m_Head.position - m_Origin.position;
         offset.y = 0;
-        m_Origin.position = m_Target.position - offset;
+        //m_Origin.position = m_Target.position - offset;
 
         Vector3 m_target_forward = m_Target.forward;
         m_target_forward.y = 0;
