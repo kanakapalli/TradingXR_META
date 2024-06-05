@@ -13,7 +13,8 @@ public class Activation : MonoBehaviour
     {
         if (Input.GetKey(KeyCode.Space))
         {
-            _dictation.ActivateImmediately();
+            // _dictation.ActivateImmediately();
+            // ActivateIMID();
         }
     }
 

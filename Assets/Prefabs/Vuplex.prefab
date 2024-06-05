@@ -30976,13 +30976,13 @@ MonoBehaviour:
     IgnoreFixedAxes: 0
     ConstrainXYAspectRatio: 0
     MinX:
-      Constrain: 1
+      Constrain: 0
       Value: 0.7
     MaxX:
       Constrain: 0
       Value: 0
     MinY:
-      Constrain: 1
+      Constrain: 0
       Value: 0.7
     MaxY:
       Constrain: 0

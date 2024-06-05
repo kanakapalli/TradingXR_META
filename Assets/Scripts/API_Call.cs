@@ -14,6 +14,7 @@ public class API_Call : MonoBehaviour
     [SerializeField] internal Transform m_Stock_Target_Point;
     [SerializeField] internal GameObject m_Stock_Prefab;
     [SerializeField] InputField m_InputField;
+    [SerializeField] TMP_Text m_RecentSearch;
     [SerializeField] internal string m_Overview_Base_Url;
     [SerializeField] internal string m_Detail_Base_Url;
     [SerializeField] internal string m_News_Base_Url;
@@ -81,7 +82,7 @@ public class API_Call : MonoBehaviour
         {
             m_VR_Keyboard.transform.localScale = m_Show_Vector;
             m_VR_Keyboard.transform.position = m_Stock_Target_Point.position;
-            m_VR_Keyboard.transform.rotation = Quaternion.identity;
+            m_VR_Keyboard.transform.rotation = m_Stock_Target_Point.rotation;
         }
     }
 
@@ -274,6 +275,7 @@ public class API_Call : MonoBehaviour
     {
         DestroyClearAllList();
         StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Current));
+        m_RecentSearch.text = string.Concat("Recent Search : ", m_InputField.text);
         m_InputField.text = "";
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
         m_VR_Keyboard.transform.position = Vector3.zero;

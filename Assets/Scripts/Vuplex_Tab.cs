@@ -15,7 +15,7 @@ public class Vuplex_Tab : MonoBehaviour
     private float previousScale;
     private float normalScale = 1.0f;
 
-    private void Update()
+    private void LateUpdate()
     {
         CheckScale();
     }
@@ -26,17 +26,17 @@ public class Vuplex_Tab : MonoBehaviour
 
         if (currentScale != previousScale)
         {
-            if (currentScale > previousScale && currentScale >= 2)
+            if (currentScale > previousScale && currentScale >= 1.5f)
             {
                 // Scale has increased beyond 2
                 ChangeURLMode(true);
             }
-            else if (currentScale < previousScale && currentScale > normalScale && currentScale <= 1.2)
+            else if (currentScale < previousScale && currentScale > normalScale && currentScale <= 1.2f)
             {
                 // Scale has decreased but is still above normal scale
                 ChangeURLMode(false);
             }
-            else if (currentScale < normalScale && currentScale < previousScale && currentScale <= .9)
+            else if (currentScale < normalScale && currentScale < previousScale && currentScale <= .4f)
             {
                 // Scale has become less than normal scale
                 Destroy(gameObject, 2f);

@@ -1,3 +1,4 @@
+using Oculus.Interaction.PoseDetection;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -23,8 +24,10 @@ public class Vuplex_Data : MonoBehaviour
     {
         GetComponent<Button>().onClick.AddListener(() =>
         {
+            Transform m_Target_Point = FindObjectOfType<API_Call>().m_Stock_Target_Point;
+
             //Spawning Vuplex View
-            var m_Object = Instantiate(m_Stock_Prefab, FindObjectOfType<API_Call>().m_Stock_Target_Point.position, Quaternion.identity);
+            var m_Object = Instantiate(m_Stock_Prefab, m_Target_Point.position, m_Target_Point.rotation);
 
             //Assigning Overview and Detail URL
             m_Object.GetComponent<Vuplex_Tab>().m_Overview_Url = m_Overview_Url;
