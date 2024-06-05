@@ -15,6 +15,11 @@ public class Vuplex_Tab : MonoBehaviour
     private float previousScale;
     private float normalScale = 1.0f;
 
+    private void Start()
+    {
+        previousScale = GetOverallScale();
+    }
+
     private void LateUpdate()
     {
         CheckScale();
@@ -22,28 +27,34 @@ public class Vuplex_Tab : MonoBehaviour
 
     private void CheckScale()
     {
-        float currentScale = transform.localScale.x;
+        float currentScale = GetOverallScale();
 
         if (currentScale != previousScale)
         {
-            if (currentScale > previousScale && currentScale >= 1.5f)
+            if (currentScale >= 1.5f)
             {
-                // Scale has increased beyond 2
+                // Scale has increased beyond or equal to 1.5
                 ChangeURLMode(true);
             }
-            else if (currentScale < previousScale && currentScale > normalScale && currentScale <= 1.2f)
+            else if (currentScale > 0.4f && currentScale < 1.5f)
             {
-                // Scale has decreased but is still above normal scale
+                // Scale is between 0.4 and 1.5
                 ChangeURLMode(false);
             }
-            else if (currentScale < normalScale && currentScale < previousScale && currentScale <= .4f)
+            else if (currentScale <= 0.4f)
             {
-                // Scale has become less than normal scale
+                // Scale has become less than or equal to 0.4
                 Destroy(gameObject, 2f);
             }
 
             previousScale = currentScale;
         }
+    }
+
+    private float GetOverallScale()
+    {
+        Vector3 localScale = transform.localScale;
+        return localScale.x * localScale.y;
     }
 
     internal void ChangeURLMode(bool m_config)
