@@ -126,9 +126,10 @@ public class Listener : MonoBehaviour
 
     private void TurnOffIntent()
     {
-        /*m_PalmMenuExampleButtonHandlers.ToggleRotationEnabled();
+        m_PalmMenuExampleButtonHandlers.ToggleRotationEnabled();
         m_PalmMenuController.DeactivateAllScreens();
-        m_AppVoiceExperience.Deactivate();*/
+        m_AppVoiceExperience.Deactivate();//Current Action
+        _voice_active = true;//Ready For Next Action
     }
 
     public void ConfirmIntent()
@@ -213,13 +214,13 @@ public class Listener : MonoBehaviour
     {
         if (_voice_active)
         {
-            m_AppVoiceExperience.ActivateImmediately();
-            _voice_active = false;
+            m_AppVoiceExperience.ActivateImmediately();//Current Action
+            _voice_active = false;//Ready For Next Action
         }
         else
         {
-            m_AppVoiceExperience.DeactivateAndAbortRequest();
-            _voice_active = true;
+            m_AppVoiceExperience.DeactivateAndAbortRequest();//Current Action
+            _voice_active = true;//Ready For Next Action
         }
     }
 
