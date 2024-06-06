@@ -24,6 +24,7 @@ public class Listener : MonoBehaviour
     private string gainLose = "https://assisntak.web.app/topgainerlossers";
     private bool _intent_found = false;
     private int _intent_count = 0;
+    private bool _voice_active = true;
 
     public void GetStocksIntent(string[] values)
     {
@@ -34,7 +35,7 @@ public class Listener : MonoBehaviour
         Debug.Log("<color=blue>" + _intent + "</color>");
         _intent_found = true;
 
-        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, Quaternion.identity);
+        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, m_API_Call.m_Stock_Target_Point.rotation);
         int _res = GetIndex(_stock_name);
         if (_res == -1)
         {
@@ -73,7 +74,7 @@ public class Listener : MonoBehaviour
         var _dict = m_Demo_Dict[_res];
         TurnOffIntent();
 
-        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, Quaternion.identity);
+        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, m_API_Call.m_Stock_Target_Point.rotation);
         string m_news_url = $"{m_API_Call.m_News_Base_Url}{_dict._symbol}&exchange={_dict._exchange}";
 
         var tab = m_Object.GetComponent<Vuplex_Tab>();
@@ -102,7 +103,7 @@ public class Listener : MonoBehaviour
         var _dict = m_Demo_Dict[_res];
         TurnOffIntent();
 
-        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, Quaternion.identity);
+        var m_Object = Instantiate(m_API_Call.m_Stock_Prefab, m_API_Call.m_Stock_Target_Point.position, m_API_Call.m_Stock_Target_Point.rotation);
         var tab = m_Object.GetComponent<Vuplex_Tab>();
         tab.m_CanvasWebView.InitialUrl = gainLose;
         tab.m_CanvasWebView.WebView.LoadUrl(gainLose);
@@ -125,9 +126,9 @@ public class Listener : MonoBehaviour
 
     private void TurnOffIntent()
     {
-        m_PalmMenuExampleButtonHandlers.ToggleRotationEnabled();
+        /*m_PalmMenuExampleButtonHandlers.ToggleRotationEnabled();
         m_PalmMenuController.DeactivateAllScreens();
-        m_AppVoiceExperience.Deactivate();
+        m_AppVoiceExperience.Deactivate();*/
     }
 
     public void ConfirmIntent()
@@ -157,13 +158,20 @@ public class Listener : MonoBehaviour
 
     private async Task IntentNotFoundActionAsync()
     {
-        await Task.Delay(500);
-        var m_Response = await LLM_Model.Instance.SendRequestAsync(m_Listener_Full_Response);
-        await Task.Delay(500);
-        string m_response = m_Response.result;
-        m_TTSSpeaker.Speak(m_response);
-        m_LLM_Text.text = m_response;
-        Debug.Log("<color=red>Intent Not Found Action Method Triggered</color>");
+        if (m_Listener_Full_Response != "" || m_Listener_Full_Response != null)
+        {
+            await Task.Delay(500);
+            var m_Response = await LLM_Model.Instance.SendRequestAsync(m_Listener_Full_Response);
+            await Task.Delay(500);
+            string m_response = m_Response.result;
+            m_TTSSpeaker.Speak(m_response);
+            m_LLM_Text.text = m_response;
+            Debug.Log("<color=red>Intent Not Found Action Method Triggered</color>");
+        }
+        else
+        {
+            return;
+        }
     }
 
     private void InitIntent()
@@ -199,6 +207,20 @@ public class Listener : MonoBehaviour
     {
         m_Listener_Full_Response = m_result;
         Debug.Log("<color=green><b>" + m_result + "</b></color>");
+    }
+
+    public void ToggleVoice()
+    {
+        if (_voice_active)
+        {
+            m_AppVoiceExperience.ActivateImmediately();
+            _voice_active = false;
+        }
+        else
+        {
+            m_AppVoiceExperience.DeactivateAndAbortRequest();
+            _voice_active = true;
+        }
     }
 
     [System.Serializable]

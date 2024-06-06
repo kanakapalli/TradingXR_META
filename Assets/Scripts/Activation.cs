@@ -9,6 +9,8 @@ public class Activation : MonoBehaviour
     [SerializeField] private DictationService _dictation;
     [SerializeField] private MultiRequestTranscription _transcription;
 
+    private bool _mic_activation = false;
+
     private void Update()
     {
         if (Input.GetKey(KeyCode.Space))
@@ -20,13 +22,15 @@ public class Activation : MonoBehaviour
 
     public void ToggleActivation()
     {
-        if (_dictation.MicActive)
+        if (_mic_activation)
         {
             _dictation.Deactivate();
+            _mic_activation = false;
         }
         else
         {
             _dictation.Activate();
+            _mic_activation = true;
         }
     }
 
@@ -40,6 +44,7 @@ public class Activation : MonoBehaviour
         _dictation.ActivateImmediately();
         yield return new WaitForSeconds(.8f);
         FindObjectOfType<API_Call>().OnEnterPress();
+        _dictation.Deactivate();
         yield return new WaitForSeconds(0.4f);
         _transcription.Clear();
     }
