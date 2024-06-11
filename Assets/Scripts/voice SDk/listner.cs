@@ -18,7 +18,13 @@ public class Listener : MonoBehaviour
     [SerializeField] Palm_Menu_Controller m_PalmMenuController;
     [SerializeField] AppVoiceExperience m_AppVoiceExperience;
     [SerializeField] List<Dict> m_Demo_Dict = new List<Dict>();
+
+    [Header("LLM Model Modifications")]
+    [SerializeField] List<MeshRenderer> m_LLM_Mesh_Model = new List<MeshRenderer>();
+    [SerializeField] Material m_LLM_Default_Material;
+    [SerializeField] Material m_LLM_Thinking_Material;
     [SerializeField] Text m_LLM_Text;
+
     [SerializeField] string m_Listener_Full_Response;
 
     private string gainLose = "https://assisntak.web.app/topgainerlossers";
@@ -150,6 +156,7 @@ public class Listener : MonoBehaviour
             if (_intent_found)
             {
                 Debug.Log("<color=red>Intent Not Found Perform Action</color>");
+                ColorChangeLLMModel(m_LLM_Thinking_Material);
                 m_LLM_Text.text = "Thinking...";
                 await IntentNotFoundActionAsync();
             }
@@ -165,6 +172,7 @@ public class Listener : MonoBehaviour
             var m_Response = await LLM_Model.Instance.SendRequestAsync(m_Listener_Full_Response);
             await Task.Delay(500);
             string m_response = m_Response.result;
+            ColorChangeLLMModel(m_LLM_Default_Material);
             m_TTSSpeaker.Speak(m_response);
             m_LLM_Text.text = m_response;
             Debug.Log("<color=red>Intent Not Found Action Method Triggered</color>");
@@ -221,6 +229,16 @@ public class Listener : MonoBehaviour
         {
             m_AppVoiceExperience.DeactivateAndAbortRequest();//Current Action
             _voice_active = true;//Ready For Next Action
+        }
+    }
+
+    internal void ColorChangeLLMModel(Material m_material)
+    {
+        foreach(MeshRenderer mesh in m_LLM_Mesh_Model)
+        {
+            Material[] materials = mesh.materials;
+            materials[0] = m_material;
+            mesh.materials = materials;
         }
     }
 

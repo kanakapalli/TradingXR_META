@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class HeadGaze : MonoBehaviour
@@ -16,6 +17,8 @@ public class HeadGaze : MonoBehaviour
     [SerializeField] private SkinnedMeshRenderer m_Right_Renderer;
 
     private GameObject cursorInstance;
+
+    private List<GameObject> tabFocused = new List<GameObject>();
 
     private void Update()
     {
@@ -92,34 +95,22 @@ public class HeadGaze : MonoBehaviour
             DeletableObject deletableObject = hit.collider.GetComponent<DeletableObject>();
             if (deletableObject != null && deletableObject.CanBeDeleted())
             {
-                // Instantiate or move the cursor prefab to the hit point
-                if (cursorInstance == null)
-                {
-                    cursorInstance = Instantiate(cursorPrefab, hit.point, Quaternion.identity);
-                }
-                else
-                {
-                    cursorInstance.transform.position = hit.point;
-                }
+                TurnOffBorderTargets();
+                Transform m_collided = hit.collider.gameObject.transform;
+                GameObject tab = m_collided.GetChild(m_collided.childCount - 1).gameObject; //Detects the last child
+                tab.SetActive(true);
+                tabFocused.Add(tab);
             }
             else
             {
                 // Destroy the cursor instance
-                if (cursorInstance != null)
-                {
-                    Destroy(cursorInstance);
-                    cursorInstance = null;
-                }
+                TurnOffBorderTargets();
             }
         }
         else
         {
             // Destroy the cursor instance
-            if (cursorInstance != null)
-            {
-                Destroy(cursorInstance);
-                cursorInstance = null;
-            }
+            TurnOffBorderTargets();
         }
     }
 
@@ -139,6 +130,7 @@ public class HeadGaze : MonoBehaviour
                 {
                     // Delete the object
                     Destroy(hit.collider.gameObject);
+                    TurnOffBorderTargets();
                 }
             }
         }
@@ -147,5 +139,15 @@ public class HeadGaze : MonoBehaviour
     public void ToggleHeadGaze()
     {
         m_HeadGazeActivate = !m_HeadGazeActivate;
+        TurnOffBorderTargets();
+    }
+
+    private void TurnOffBorderTargets()
+    {
+        foreach (GameObject obj in tabFocused)
+        {
+            obj.SetActive(false);
+            tabFocused.Remove(obj);
+        }
     }
 }

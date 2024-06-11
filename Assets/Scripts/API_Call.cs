@@ -80,9 +80,10 @@ public class API_Call : MonoBehaviour
         }
         if (m_InputField.isFocused && m_VR_Keyboard.transform.localScale == m_Hide_Vector)
         {
-            m_VR_Keyboard.transform.localScale = m_Show_Vector;
+            /*m_VR_Keyboard.transform.localScale = m_Show_Vector;
             m_VR_Keyboard.transform.position = m_Stock_Target_Point.position;
-            m_VR_Keyboard.transform.rotation = m_Stock_Target_Point.rotation;
+            m_VR_Keyboard.transform.rotation = m_Stock_Target_Point.rotation;*/
+            ShowKeyboard();
         }
     }
 
@@ -324,6 +325,15 @@ public class API_Call : MonoBehaviour
         m_Ended = false;
     }
 
+    public void ShowKeyboard()
+    {
+        if (m_VR_Keyboard.transform.localScale == m_Hide_Vector)
+        {
+            m_VR_Keyboard.transform.localScale = m_Show_Vector;
+            m_VR_Keyboard.transform.position = m_Stock_Target_Point.position;
+            m_VR_Keyboard.transform.rotation = m_Stock_Target_Point.rotation;
+        }
+    }
     private void Recenter()
     {
         Vector3 offset = m_Head.position - m_Origin.position;
