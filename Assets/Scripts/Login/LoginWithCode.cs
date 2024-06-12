@@ -35,7 +35,7 @@ public class LoginManager : MonoBehaviour
     IEnumerator LoginWithCode()
     {
         // URL of the API
-        string url = "http://13.232.85.119:8000/api/login_with_code/";
+        string url = "http://13.235.128.23:8000/api/login_with_code/";
 
         // JSON body data
         string jsonBody = "{\"loginCode\":\"" + _login_InputField.text + "\"}";
@@ -95,7 +95,7 @@ public class LoginManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             PlayerPrefs.SetInt("_LogIn", 1);
-            StartCoroutine(SceneAsync());
+            //StartCoroutine(SceneAsync());
         }
     }
 

@@ -11,6 +11,7 @@ public class Activation : MonoBehaviour
     [FormerlySerializedAs("dictation")]
     [SerializeField] private DictationService _dictation;
     [SerializeField] private MultiRequestTranscription _transcription;
+    [SerializeField] private Animator _animator;
 
     private bool _mic_activation = false;
 
@@ -59,5 +60,10 @@ public class Activation : MonoBehaviour
         _dictation.Deactivate();
         FindObjectOfType<API_Call>().OnEnterPress();
         _transcription.Clear();
+    }
+
+    public void ToggleAnimation(bool value)
+    {
+        _animator.SetBool("Listening", value);
     }
 }

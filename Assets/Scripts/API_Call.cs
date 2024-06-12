@@ -47,6 +47,9 @@ public class API_Call : MonoBehaviour
     [SerializeField] internal string m_Prev_Url;
     [SerializeField] internal string m_Next_Url;
 
+    [Header("Stock Screen Controller")]
+    [SerializeField] internal StockSearchCanvas m_StockScreenCanvas;
+
     private void Awake()
     {
         m_VR_Keyboard.transform.localScale = m_Hide_Vector;
@@ -274,6 +277,7 @@ public class API_Call : MonoBehaviour
 
     public void OnEnterPress()
     {
+        m_StockScreenCanvas.SearchDeactivate();
         DestroyClearAllList();
         StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Current));
         m_RecentSearch.text = string.Concat("Recent Search : ", m_InputField.text);
@@ -292,7 +296,7 @@ public class API_Call : MonoBehaviour
         StartCoroutine(StockApiService.Instance.SearchStocks(m_InputField.text, OnDataReceived, OnError, OperationMode.Previous));
     }
 
-    private void DestroyClearList()
+    public void DestroyClearList()
     {
         m_StockDataList.Clear();
 
@@ -305,7 +309,7 @@ public class API_Call : MonoBehaviour
         m_Ended = false;
     }
 
-    private void DestroyClearAllList()
+    public void DestroyClearAllList()
     {
         foreach (var item in m_Instantiated_PrefabList)
         {

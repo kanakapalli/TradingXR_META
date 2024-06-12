@@ -7,6 +7,7 @@ public class Palm_Menu_Controller : MonoBehaviour
     // Reference to the screens
     public GameObject stockScreen;
     public GameObject widgetScreen;
+    public GameObject loginScreen;
     public GameObject settingsScreen;
     public GameObject assistScreen;
 

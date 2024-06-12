@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class HeadGaze : MonoBehaviour
@@ -15,6 +16,8 @@ public class HeadGaze : MonoBehaviour
 
     [SerializeField] private SkinnedMeshRenderer m_Left_Renderer;
     [SerializeField] private SkinnedMeshRenderer m_Right_Renderer;
+
+    public TMP_Text m_DebugArea;
 
     private GameObject cursorInstance;
 
@@ -139,7 +142,8 @@ public class HeadGaze : MonoBehaviour
     public void ToggleHeadGaze()
     {
         m_HeadGazeActivate = !m_HeadGazeActivate;
-        TurnOffBorderTargets();
+        m_DebugArea.text = "Clicked Gaze Button";
+        /*TurnOffBorderTargets();*/
     }
 
     private void TurnOffBorderTargets()
