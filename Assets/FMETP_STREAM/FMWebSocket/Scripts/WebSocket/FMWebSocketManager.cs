@@ -1,8 +1,8 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution.FMWebSocket
 {
     public enum FMWebSocketNetworkType { Server, Client, WebSocket }
     public enum FMWebSocketSendType { All, Server, Others, Target }

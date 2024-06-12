@@ -2,10 +2,9 @@
 using UnityEngine;
 using UnityEngine.Rendering;
 using System.Linq;
-
 using System;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     [AddComponentMenu("FMETP/Mapper/FMPCStreamDecoder")]
     public class FMPCStreamDecoder : MonoBehaviour
@@ -95,7 +94,7 @@ namespace FMETP
                 if (receivedLength == dataLength)
                 {
                     StopAllCoroutines();
-                    if (this.isActiveAndEnabled) StartCoroutine(ProcessImageData(dataByte));
+                    if (this.isActiveAndEnabled) StartCoroutine(ProcessImageDataCOR(dataByte));
                 }
             }
         }
@@ -108,7 +107,7 @@ namespace FMETP
         private float camOrthographicProjection = 0f;
         private float camOrthographicSize = 1f;
 
-        IEnumerator ProcessImageData(byte[] _byteData)
+        private IEnumerator ProcessImageDataCOR(byte[] _byteData)
         {
             ReadyToGetFrame = false;
 
@@ -192,7 +191,7 @@ namespace FMETP
                 else
                 {
                     //no spare thread, run in main thread
-                    if (GZipMode) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMUnzippedByteCOR(inputByteData), (output) => inputByteData = output);
+                    if (GZipMode) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMUnzippedByteCOR(inputByteData), (output) => inputByteData = output);
                     try { ReceivedTexture2D.FMLoadJPG(ref ReceivedTexture2D, inputByteData); }
                     catch
                     {
@@ -206,7 +205,7 @@ namespace FMETP
             }
             else
             {
-                if (GZipMode) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMUnzippedByteCOR(inputByteData), (output) => inputByteData = output);
+                if (GZipMode) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMUnzippedByteCOR(inputByteData), (output) => inputByteData = output);
                 try { ReceivedTexture2D.LoadImage(inputByteData); }
                 catch
                 {

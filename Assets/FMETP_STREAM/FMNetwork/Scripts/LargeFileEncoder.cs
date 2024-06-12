@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System;
 
-namespace FMETP
+namespace FMSolution.FMNetwork
 {
     [AddComponentMenu("FMETP/Mapper/LargeFileEncoder")]
     public class LargeFileEncoder : MonoBehaviour

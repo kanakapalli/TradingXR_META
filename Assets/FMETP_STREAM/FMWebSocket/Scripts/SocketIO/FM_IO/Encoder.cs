@@ -32,7 +32,7 @@ using System.Collections;
 using System.Text;
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

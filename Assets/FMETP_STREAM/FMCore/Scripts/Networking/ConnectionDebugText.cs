@@ -1,9 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace FMETP
+namespace FMSolution
 {
     public class ConnectionDebugText : MonoBehaviour
     {

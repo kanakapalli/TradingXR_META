@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     public enum AudioOutputFormat { FMPCM16, PCM16 }
     public enum AudioReadMethod { OnAudioFilterRead, AudioListenerGetOutputData }
@@ -170,13 +170,13 @@ namespace FMETP
                             {
                                 if (OutputFormat == AudioOutputFormat.FMPCM16)
                                 {
-                                    byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(_data));
+                                    byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(_data));
                                     foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                 }
                                 else
                                 {
                                     //byte[] byteData = BitConverter.GetBytes(_data);
-                                    byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(_data));
+                                    byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(_data));
                                     foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                 }
 
@@ -223,12 +223,12 @@ namespace FMETP
                                     {
                                         if (OutputFormat == AudioOutputFormat.FMPCM16)
                                         {
-                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(data[targetChannel][i]));
+                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(data[targetChannel][i]));
                                             foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                         }
                                         else
                                         {
-                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(data[targetChannel][i]));
+                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(data[targetChannel][i]));
                                             foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                         }
                                     }
@@ -250,12 +250,12 @@ namespace FMETP
 
                                         if (OutputFormat == AudioOutputFormat.FMPCM16)
                                         {
-                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(Mathf.Lerp(lastAudioBuffer, currentAudioBuffer, scaledStep % 1f)));
+                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(Mathf.Lerp(lastAudioBuffer, currentAudioBuffer, scaledStep % 1f)));
                                             foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                         }
                                         else
                                         {
-                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(Mathf.Lerp(lastAudioBuffer, currentAudioBuffer, scaledStep % 1f)));
+                                            byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(Mathf.Lerp(lastAudioBuffer, currentAudioBuffer, scaledStep % 1f)));
                                             foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                                         }
                                     }
@@ -307,7 +307,7 @@ namespace FMETP
 
                     AudioBytes = new ConcurrentQueue<byte>();
 
-                    if (GZipMode) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMZippedByteCOR(dataByte), (output) => dataByte = output);
+                    if (GZipMode) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMZippedByteCOR(dataByte), (output) => dataByte = output);
 
                     dataByteTemp = dataByte.ToArray();
                     //==================getting byte data==================
@@ -380,6 +380,7 @@ namespace FMETP
                 }
             }
         }
+
         private void StopAll()
         {
             initialised = false;

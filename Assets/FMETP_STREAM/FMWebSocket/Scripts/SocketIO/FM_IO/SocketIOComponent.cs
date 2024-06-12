@@ -35,8 +35,9 @@ using System.Threading;
 using UnityEngine;
 using WebSocketSharp;
 using WebSocketSharp.Net;
+using FMSolution.FMWebSocket;
 
-namespace FMETP
+namespace FMSolution
 {
     namespace FMSocketIO
     {

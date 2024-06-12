@@ -5,7 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Linq;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     [Serializable]
     public enum MicDeviceMode { Default, TargetDevice }
@@ -65,13 +65,9 @@ namespace FMETP
         private Queue<byte[]> AppendQueueSendBytePCM16 = new Queue<byte[]>();
 
         public int dataLength;
-        // Use this for initialization
-        private void Start()
-        {
-            StartAll();
-        }
+        private void Start() { StartAll(); }
 
-        IEnumerator CaptureMic()
+        private IEnumerator CaptureMicCOR()
         {
             if (AudioMic == null) AudioMic = GetComponent<AudioSource>();
             if (AudioMic == null) AudioMic = gameObject.AddComponent<AudioSource>();
@@ -129,7 +125,7 @@ namespace FMETP
                 {
                     for (int i = LastAudioTimeSample; i < CurrentAudioTimeSample; i++)
                     {
-                        byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(samples[i]));
+                        byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(samples[i]));
                         foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                     }
                 }
@@ -137,12 +133,12 @@ namespace FMETP
                 {
                     for (int i = LastAudioTimeSample; i < samples.Length; i++)
                     {
-                        byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(samples[i]));
+                        byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(samples[i]));
                         foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                     }
                     for (int i = 0; i < CurrentAudioTimeSample; i++)
                     {
-                        byte[] byteData = BitConverter.GetBytes(FMCoreTools.FloatToInt16(samples[i]));
+                        byte[] byteData = BitConverter.GetBytes(FMCoreTools_V3.FloatToInt16(samples[i]));
                         foreach (byte _byte in byteData) AudioBytes.Enqueue(_byte);
                     }
                 }
@@ -191,7 +187,7 @@ namespace FMETP
 
                     AudioBytes = new ConcurrentQueue<byte>();
 
-                    if (GZipMode) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMZippedByteCOR(dataByte), (output) => dataByte = output);
+                    if (GZipMode) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMZippedByteCOR(dataByte), (output) => dataByte = output);
 
                     dataByteTemp = dataByte.ToArray();
                     //==================getting byte data==================
@@ -254,7 +250,7 @@ namespace FMETP
 
             stop = false;
             StartCoroutine(SenderCOR());
-            StartCoroutine(CaptureMic());
+            StartCoroutine(CaptureMicCOR());
         }
         private void StopAll()
         {

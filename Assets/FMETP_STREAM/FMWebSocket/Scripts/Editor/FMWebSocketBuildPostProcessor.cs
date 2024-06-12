@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEditor;
 using UnityEditor.Callbacks;
 
-namespace FMETP
+namespace FMSolution
 {
     public class FMWebSocketBuildPostProcessor
     {

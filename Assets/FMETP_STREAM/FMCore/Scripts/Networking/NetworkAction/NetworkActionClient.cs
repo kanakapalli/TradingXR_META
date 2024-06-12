@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-namespace FMETP
+namespace FMSolution
 {
     public class NetworkActionClient : MonoBehaviour
     {

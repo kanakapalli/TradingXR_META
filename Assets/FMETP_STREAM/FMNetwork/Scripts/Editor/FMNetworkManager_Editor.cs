@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace FMETP
+namespace FMSolution.FMNetwork
 {
     [CustomEditor(typeof(FMNetworkManager))]
     [CanEditMultipleObjects]
@@ -36,6 +36,7 @@ namespace FMETP
         SerializedProperty DataStreamSettings_TCPSocketTypeProp;
         SerializedProperty DataStreamSettings_MulticastAddressProp;
         SerializedProperty DataStreamSettings_IsConnectedProp;
+        SerializedProperty DataStreamSettings_ServerIPProp;
         SerializedProperty DataStreamSettings_ClientIPProp;
         SerializedProperty DataStreamSettings_ClientIPListProp;
         SerializedProperty DataStreamSettings_UseMainThreadSenderProp;
@@ -54,9 +55,9 @@ namespace FMETP
         SerializedProperty OnFoundServerEventProp;
         SerializedProperty OnLostServerEventProp;
 
-        SerializedProperty NetworkObjectsProp;
-        SerializedProperty SyncFPSProp;
-        SerializedProperty EnableNetworkObjectsSyncProp;
+        //SerializedProperty NetworkObjectsProp;
+        //SerializedProperty SyncFPSProp;
+        //SerializedProperty EnableNetworkObjectsSyncProp;
 
         void OnEnable()
         {
@@ -88,6 +89,7 @@ namespace FMETP
             DataStreamSettings_TCPSocketTypeProp = serializedObject.FindProperty("DataStreamSettings.TCPSocketType");
             DataStreamSettings_MulticastAddressProp = serializedObject.FindProperty("DataStreamSettings.MulticastAddress");
             DataStreamSettings_IsConnectedProp = serializedObject.FindProperty("DataStreamSettings.IsConnected");
+            DataStreamSettings_ServerIPProp = serializedObject.FindProperty("DataStreamSettings.ServerIP");
             DataStreamSettings_ClientIPProp = serializedObject.FindProperty("DataStreamSettings.ClientIP");
             DataStreamSettings_ClientIPListProp = serializedObject.FindProperty("DataStreamSettings.ClientIPList");
             DataStreamSettings_UseMainThreadSenderProp = serializedObject.FindProperty("DataStreamSettings.UseMainThreadSender");
@@ -106,9 +108,9 @@ namespace FMETP
             OnFoundServerEventProp = serializedObject.FindProperty("OnFoundServerEvent");
             OnLostServerEventProp = serializedObject.FindProperty("OnLostServerEvent");
 
-            NetworkObjectsProp = serializedObject.FindProperty("NetworkObjects");
-            SyncFPSProp = serializedObject.FindProperty("SyncFPS");
-            EnableNetworkObjectsSyncProp = serializedObject.FindProperty("EnableNetworkObjectsSync");
+            //NetworkObjectsProp = serializedObject.FindProperty("NetworkObjects");
+            //SyncFPSProp = serializedObject.FindProperty("SyncFPS");
+            //EnableNetworkObjectsSyncProp = serializedObject.FindProperty("EnableNetworkObjectsSync");
         }
 
         // Update is called once per frame
@@ -135,7 +137,7 @@ namespace FMETP
                     style.normal.background = backgroundTexture;
 
                     GUILayout.BeginHorizontal();
-                    GUILayout.Label("(( FM Network 2.0 ))", style);
+                    GUILayout.Label("(( FM Network 3.0 ))", style);
                     GUILayout.EndHorizontal();
                 }
 
@@ -373,6 +375,13 @@ namespace FMETP
                                             EditorGUILayout.PropertyField(DataStreamSettings_DataStreamProtocolProp, new GUIContent("DataStreamProtocol"));
                                             GUILayout.EndHorizontal();
 
+                                            if (FMNetwork.DataStreamSettings.TCPSocketType == FMTCPSocketType.TCPClient)
+                                            {
+                                                GUILayout.BeginHorizontal();
+                                                EditorGUILayout.PropertyField(DataStreamSettings_ServerIPProp, new GUIContent("Server IP"));
+                                                GUILayout.EndHorizontal();
+                                            }
+
                                             GUILayout.BeginHorizontal();
                                             EditorGUILayout.PropertyField(DataStreamSettings_ClientListenPortProp, new GUIContent("ClientListenPort"));
                                             GUILayout.EndHorizontal();
@@ -430,58 +439,64 @@ namespace FMETP
             }
             GUILayout.EndVertical();
 
-            if (FMNetwork.NetworkType == FMNetworkType.Server || FMNetwork.NetworkType == FMNetworkType.Client)
-            {
-                GUILayout.Space(2);
-                GUILayout.BeginVertical("box");
-                {
-                    if (!FMNetwork.EditorShowSyncTransformation)
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUI.skin.button.alignment = TextAnchor.MiddleLeft;
-                        if (GUILayout.Button("+ Sync Transformation from Server")) FMNetwork.EditorShowSyncTransformation = true;
-                        GUI.skin.button.alignment = TextAnchor.MiddleCenter;
-                        GUILayout.EndHorizontal();
-                    }
-                    else
-                    {
-                        GUILayout.BeginHorizontal();
-                        GUI.skin.button.alignment = TextAnchor.MiddleLeft;
-                        if (GUILayout.Button("- Sync Transformation from Server")) FMNetwork.EditorShowSyncTransformation = false;
-                        GUI.skin.button.alignment = TextAnchor.MiddleCenter;
-                        GUILayout.EndHorizontal();
+            //if (FMNetwork.NetworkType == FMNetworkType.Server || FMNetwork.NetworkType == FMNetworkType.Client)
+            //{
+            //    GUILayout.Space(2);
+            //    GUILayout.BeginVertical("box");
+            //    {
+            //        if (!FMNetwork.EditorShowSyncTransformation)
+            //        {
+            //            GUILayout.BeginHorizontal();
+            //            GUI.skin.button.alignment = TextAnchor.MiddleLeft;
+            //            if (GUILayout.Button("+ Sync Transformation")) FMNetwork.EditorShowSyncTransformation = true;
+            //            GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+            //            GUILayout.EndHorizontal();
+            //        }
+            //        else
+            //        {
+            //            GUILayout.BeginHorizontal();
+            //            GUI.skin.button.alignment = TextAnchor.MiddleLeft;
+            //            if (GUILayout.Button("- Sync Transformation")) FMNetwork.EditorShowSyncTransformation = false;
+            //            GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+            //            GUILayout.EndHorizontal();
 
-                        GUILayout.BeginVertical("box");
-                        {
-                            int NetworkObjectsNum = NetworkObjectsProp.FindPropertyRelative("Array.size").intValue;
+            //            GUILayout.BeginHorizontal();
+            //            GUIStyle style = new GUIStyle();
+            //            style.normal.textColor = Color.yellow;
+            //            GUILayout.Label(" * New method: \n adding FMNetworkTransformView to your target object", style);
+            //            GUILayout.EndHorizontal();
 
-                            if (!FMNetwork.EditorShowNetworkObjects)
-                            {
-                                GUI.skin.button.alignment = TextAnchor.MiddleLeft;
-                                if (GUILayout.Button("= NetworkObjects: " + NetworkObjectsNum)) FMNetwork.EditorShowNetworkObjects = true;
-                                GUI.skin.button.alignment = TextAnchor.MiddleCenter;
-                            }
-                            else
-                            {
-                                GUI.skin.button.alignment = TextAnchor.MiddleLeft;
-                                if (GUILayout.Button("- NetworkObjects: " + NetworkObjectsNum)) FMNetwork.EditorShowNetworkObjects = false;
-                                GUI.skin.button.alignment = TextAnchor.MiddleCenter;
-                                DrawPropertyArray(NetworkObjectsProp);
-                            }
+            //            //GUILayout.BeginVertical("box");
+            //            //{
+            //            //    int NetworkObjectsNum = NetworkObjectsProp.FindPropertyRelative("Array.size").intValue;
 
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.PropertyField(SyncFPSProp, new GUIContent("SyncFPS"));
-                            GUILayout.EndHorizontal();
+            //            //    if (!FMNetwork.EditorShowNetworkObjects)
+            //            //    {
+            //            //        GUI.skin.button.alignment = TextAnchor.MiddleLeft;
+            //            //        if (GUILayout.Button("= NetworkObjects: " + NetworkObjectsNum)) FMNetwork.EditorShowNetworkObjects = true;
+            //            //        GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+            //            //    }
+            //            //    else
+            //            //    {
+            //            //        GUI.skin.button.alignment = TextAnchor.MiddleLeft;
+            //            //        if (GUILayout.Button("- NetworkObjects: " + NetworkObjectsNum)) FMNetwork.EditorShowNetworkObjects = false;
+            //            //        GUI.skin.button.alignment = TextAnchor.MiddleCenter;
+            //            //        DrawPropertyArray(NetworkObjectsProp);
+            //            //    }
 
-                            GUILayout.BeginHorizontal();
-                            EditorGUILayout.PropertyField(EnableNetworkObjectsSyncProp, new GUIContent("EnableNetworkObjectsSync"));
-                            GUILayout.EndHorizontal();
-                        }
-                        GUILayout.EndVertical();
-                    }
-                }
-                GUILayout.EndVertical();
-            }
+            //            //    //GUILayout.BeginHorizontal();
+            //            //    //EditorGUILayout.PropertyField(SyncFPSProp, new GUIContent("SyncFPS"));
+            //            //    //GUILayout.EndHorizontal();
+
+            //            //    //GUILayout.BeginHorizontal();
+            //            //    //EditorGUILayout.PropertyField(EnableNetworkObjectsSyncProp, new GUIContent("EnableNetworkObjectsSync"));
+            //            //    //GUILayout.EndHorizontal();
+            //            //}
+            //            //GUILayout.EndVertical();
+            //        }
+            //    }
+            //    GUILayout.EndVertical();
+            //}
 
             GUILayout.Space(2);
             GUILayout.BeginVertical("box");

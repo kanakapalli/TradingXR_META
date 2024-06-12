@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using FMETP.FMSocketIO;
 using System.Threading;
 using System.Collections.Concurrent;
+using FMSolution.FMWebSocket;
 
-namespace FMETP
+namespace FMSolution.FMSocketIO
 {
     public struct FMSocketIOData
     {
@@ -17,18 +17,6 @@ namespace FMETP
 
     public enum FMSocketIONetworkType { Server, Client }
     public enum FMSocketIOEmitType { All, Server, Others }
-    public enum FMSslProtocols
-    {
-        Default = 0xF0,
-        None = 0x0,
-        Ssl2 = 0xC,
-        Ssl3 = 0x30,
-        Tls = 0xC0,
-#if UNITY_2019_1_OR_NEWER
-        Tls11 = 0x300,
-        Tls12 = 0xC00
-#endif
-    }
 
     [AddComponentMenu("FMETP/Network/FMSocketIOManager")]
     public class FMSocketIOManager : MonoBehaviour

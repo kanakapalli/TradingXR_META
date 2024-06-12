@@ -1,18 +1,12 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.Net.Sockets;
 using System.Net;
-using System.IO;
 using System;
 using System.Text;
-
-using UnityEngine.UI;
 using System.Net.NetworkInformation;
 
-using UnityEngine.Events;
-
-namespace FMETP
+namespace FMSolution
 {
     public class NetworkDiscovery : MonoBehaviour
     {

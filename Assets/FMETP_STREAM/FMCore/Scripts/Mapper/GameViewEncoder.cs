@@ -1,14 +1,12 @@
 ﻿using System.Collections;
 using UnityEngine;
 using System;
-
 using UnityEngine.Rendering;
 using System.Linq;
 using System.Collections.Generic;
-
 using UnityEngine.UI;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     public enum GameViewCaptureMode { RenderCam, MainCam, FullScreen, Desktop }
     public enum GameViewCubemapSample
@@ -1109,7 +1107,7 @@ namespace FMETP
                         {
                             try { dataByte = RawTextureData.FMRawTextureDataToJPG(streamWidth, streamHeight, Quality, ChromaSubsampling); } catch { }
 
-                            if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
+                            if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools_V3.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
                             lastRawDataByte = dataByte.Length;
 
                             if (GZipMode && !detectedSimilarTexture) try { dataByte = dataByte.FMZipBytes(); } catch { }
@@ -1123,20 +1121,20 @@ namespace FMETP
                         //need yield return, in order to fix random error "coroutine->IsInList()"
                         yield return dataByte = RawTextureData == null ? CapturedTexture.FMEncodeToJPG(Quality, ChromaSubsampling) : RawTextureData.FMRawTextureDataToJPG(streamWidth, streamHeight, Quality, ChromaSubsampling);
 
-                        if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
+                        if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools_V3.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
                         lastRawDataByte = dataByte.Length;
 
-                        if (GZipMode && !detectedSimilarTexture) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMZippedByteCOR(dataByte), (output) => dataByte = output);
+                        if (GZipMode && !detectedSimilarTexture) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMZippedByteCOR(dataByte), (output) => dataByte = output);
                     }
                 }
                 else
                 {
                     dataByte = RawTextureData == null ? CapturedTexture.EncodeToJPG(Quality) : RawTextureData.FMRawTextureDataToJPG(streamWidth, streamHeight, Quality, ChromaSubsampling);
 
-                    if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
+                    if (ignoreSimilarTexture) detectedSimilarTexture = FMCoreTools_V3.CheckSimilarSize(dataByte.Length, lastRawDataByte, similarByteSizeThreshold);
                     lastRawDataByte = dataByte.Length;
 
-                    if (GZipMode && !detectedSimilarTexture) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMZippedByteCOR(dataByte), (output) => dataByte = output);
+                    if (GZipMode && !detectedSimilarTexture) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMZippedByteCOR(dataByte), (output) => dataByte = output);
                 }
 
                 if (!detectedSimilarTexture)
@@ -1281,7 +1279,6 @@ namespace FMETP
 #if UNITY_IOS && !UNITY_EDITOR
             FastMode = true;
 #endif
-
 
 #if !UNITY_WEBGL && (UNITY_STANDALONE_OSX || UNITY_STANDALONE_WIN || UNITY_EDITOR_OSX || UNITY_EDITOR_WIN || UNITY_IOS || UNITY_ANDROID || WINDOWS_UWP || UNITY_EDITOR_LINUX || UNITY_STANDALONE_LINUX)
             //supported fast mode

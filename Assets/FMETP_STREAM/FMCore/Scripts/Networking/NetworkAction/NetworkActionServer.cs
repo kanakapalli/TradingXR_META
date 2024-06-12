@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.IO;
 using System;
@@ -7,7 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Collections.Generic;
 
-namespace FMETP
+namespace FMSolution
 {
     public class NetworkActionServer : MonoBehaviour
     {

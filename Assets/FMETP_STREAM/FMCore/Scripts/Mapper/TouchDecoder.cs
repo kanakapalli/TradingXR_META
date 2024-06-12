@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     [AddComponentMenu("FMETP/Mapper/TouchDecoder")]
     public class TouchDecoder : MonoBehaviour

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Text;
 using UnityEngine;
 
 
-namespace FMETP
+namespace FMSolution.FMWebSocket
 {
     public class FMWebSocketWebGL
     {

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution
 {
     public class TouchVisualization : MonoBehaviour
     {

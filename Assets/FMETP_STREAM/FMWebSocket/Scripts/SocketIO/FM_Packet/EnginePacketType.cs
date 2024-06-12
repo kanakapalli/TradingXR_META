@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 /*
  * EnginePacketType.cs
  *
@@ -32,7 +32,7 @@ using System;
  * Message types
  */
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

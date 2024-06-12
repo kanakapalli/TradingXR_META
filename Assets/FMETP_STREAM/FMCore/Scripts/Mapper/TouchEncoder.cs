@@ -1,9 +1,8 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     [AddComponentMenu("FMETP/Mapper/TouchEncoder")]
     public class TouchEncoder : MonoBehaviour
@@ -14,7 +13,6 @@ namespace FMETP
         public UnityEventByteArray OnDataByteReadyEvent = new UnityEventByteArray();
 
         private bool detectedTouch = false;
-
         private void Update()
         {
             TouchCount = Input.touchCount;

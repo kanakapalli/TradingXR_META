@@ -9,7 +9,7 @@ using System.Threading;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 
-namespace FMETP
+namespace FMSolution.FMNetwork
 {
     public class FMClient
     {
@@ -19,8 +19,8 @@ namespace FMETP
             private int udpSendBufferSize = 1024 * 65; //max 65535
             private int udpReceiveBufferSize = 1024 * 1024 * 4; //max 2147483647
 #else
-        private int udpSendBufferSize = 1024 * 60; //max 65535
-        private int udpReceiveBufferSize = 1024 * 512; //max 2147483647
+            private int udpSendBufferSize = 1024 * 60; //max 65535
+            private int udpReceiveBufferSize = 1024 * 512; //max 2147483647
 #endif
 
             [HideInInspector] public FMNetworkManager Manager;
@@ -31,13 +31,10 @@ namespace FMETP
             public bool SupportMulticast = false;
             public string MulticastAddress = "239.255.255.255";
 
-            //[HideInInspector]
-            public string ServerIP = "0,0,0,0";
-            [HideInInspector]
-            public string ClientIP = "0,0,0,0";
+            [HideInInspector] public string ServerIP = "0,0,0,0";
+            [HideInInspector] public string ClientIP = "0,0,0,0";
 
             public bool IsConnected = false;
-            //public bool FoundServer = false;
             private long _foundServer = 0;
             private bool FoundServer
             {
@@ -50,19 +47,19 @@ namespace FMETP
 
             private int EnvironmentTickCountDelta(int currentMS, int lastMS)
             {
-                int gap = 0;
+                int _gap = 0;
                 if (currentMS < 0 && lastMS > 0)
                 {
-                    gap = Mathf.Abs(currentMS - int.MinValue) + (int.MaxValue - lastMS);
+                    _gap = Mathf.Abs(currentMS - int.MinValue) + (int.MaxValue - lastMS);
                 }
                 else
                 {
-                    gap = currentMS - lastMS;
+                    _gap = currentMS - lastMS;
                 }
-                return gap;
+                return _gap;
             }
 
-            [HideInInspector]
+            private int connectionThreshold = 3000;//3sec
             private long _currentSeenTimeMS = 0;
             public int CurrentSeenTimeMS
             {
@@ -109,10 +106,10 @@ namespace FMETP
                 _appendQueueReceivedPacket.Enqueue(_packet);
             }
 
-            public void Action_AddPacket(byte[] _byteData, FMSendType _type, bool _reliable = false)
+            public void Action_AddPacket(byte[] _byteData, FMSendType _type, FMPacketDataType _dataType, bool _reliable)
             {
                 byte[] _meta = new byte[4];
-                _meta[0] = 0;//raw byte
+                _meta[0] = (byte)_dataType; //_meta[0] = 0;//raw byte
 
                 if (_type == FMSendType.All) _meta[1] = 0;//all clients
                 if (_type == FMSendType.Server) _meta[1] = 1;//all clients
@@ -131,15 +128,15 @@ namespace FMETP
                     _appendQueueSendPacket.Enqueue(_packet);
                 }
             }
-            public void Action_AddPacket(string _stringData, FMSendType _type, bool _reliable = false)
+            public void Action_AddPacket(string _stringData, FMSendType _type, FMPacketDataType _dataType, bool _reliable)
             {
                 byte[] _byteData = Encoding.ASCII.GetBytes(_stringData);
 
                 byte[] _meta = new byte[4];
-                _meta[0] = 1;//raw byte
+                _meta[0] = (byte)_dataType; //_meta[0] = 1;//string data
 
                 if (_type == FMSendType.All) _meta[1] = 0;//all clients
-                if (_type == FMSendType.Server) _meta[1] = 1;//all clients
+                if (_type == FMSendType.Server) _meta[1] = 1;//server
                 if (_type == FMSendType.Others) _meta[1] = 2;//skip sender
 
                 byte[] _sendByte = new byte[_byteData.Length + _meta.Length];
@@ -156,17 +153,17 @@ namespace FMETP
                 }
             }
 
-            public void Action_AddPacket(byte[] _byteData, string _targetIP, bool _reliable = false)
+            public void Action_AddPacket(byte[] _byteData, string _targetIP, FMPacketDataType _dataType, bool _reliable)
             {
                 //if (ServerIP == _targetIP)
                 //{
-                //    Action_AddPacket(_byteData, FMSendType.Server);
+                //    Action_AddPacket(_byteData, FMSendType.Server, _reliable);
                 //    return;
                 //}
 
                 //Send To Target IP
                 byte[] _meta = new byte[4];
-                _meta[0] = 0;//raw byte
+                _meta[0] = (byte)_dataType; //_meta[0] = 0;//raw byte
                 _meta[1] = 3;//target ip
 
                 byte[] _ip = IPAddress.Parse(_targetIP).GetAddressBytes();
@@ -185,24 +182,25 @@ namespace FMETP
                     _appendQueueSendPacket.Enqueue(_packet);
                 }
             }
-            public void Action_AddPacket(string _stringData, string _targetIP, bool _reliable = false)
+            public void Action_AddPacket(string _stringData, string _targetIP, FMPacketDataType _dataType, bool _reliable)
             {
-                if (ServerIP == _targetIP)
-                {
-                    Action_AddPacket(_stringData, FMSendType.Server);
-                    return;
-                }
+                //if (ServerIP == _targetIP)
+                //{
+                //    Action_AddPacket(_stringData, FMSendType.Server, _reliable);
+                //    return;
+                //}
+
                 byte[] _byteData = Encoding.ASCII.GetBytes(_stringData);
 
                 byte[] _meta = new byte[4];
-                _meta[0] = 1;//raw byte
+                _meta[0] = (byte)_dataType; //_meta[0] = 1;//string data
                 _meta[1] = 3;//target ip
 
                 byte[] _ip = IPAddress.Parse(_targetIP).GetAddressBytes();
                 byte[] _sendByte = new byte[_byteData.Length + _meta.Length + _ip.Length];
                 Buffer.BlockCopy(_meta, 0, _sendByte, 0, _meta.Length);
                 Buffer.BlockCopy(_ip, 0, _sendByte, 4, _ip.Length);
-                Buffer.BlockCopy(_byteData, 0, _sendByte, 6, _byteData.Length);
+                Buffer.BlockCopy(_byteData, 0, _sendByte, 8, _byteData.Length);
 
                 //if (_appendQueueSendPacket.Count < 60)
                 {
@@ -228,19 +226,29 @@ namespace FMETP
                 set { Interlocked.Exchange(ref _destroy, Convert.ToInt64(value)); }
             }
 
-            void Start() { StartAll(); }
+            private void Start() { StartAll(); }
             public void Action_StartClient() { StartCoroutine(NetworkClientStartCOR()); }
 
             private UdpClient Client;
             private UdpClient ClientListener;
             private IPEndPoint ServerEp;
-            IEnumerator NetworkClientStartCOR()
+            private IEnumerator NetworkClientStartCOR()
             {
-                LastSentTimeMS = Environment.TickCount;
-                LastReceivedTimeMS = Environment.TickCount;
+                CurrentSeenTimeMS = Environment.TickCount;
+                if (CurrentSeenTimeMS > 0)
+                {
+                    LastSentTimeMS = CurrentSeenTimeMS - connectionThreshold;
+                    LastReceivedTimeMS = CurrentSeenTimeMS - connectionThreshold;
+                }
+                else
+                {
+                    LastSentTimeMS = int.MaxValue - connectionThreshold;
+                    LastReceivedTimeMS = int.MaxValue - connectionThreshold;
+                }
 
                 stop = false;
-                yield return new WaitForSeconds(0.5f);
+                yield return new WaitForSeconds(0.1f);
+                yield return null;
 
                 if (UseMainThreadSender)
                 {
@@ -252,8 +260,8 @@ namespace FMETP
                     while (Loom.numThreads >= Loom.maxThreads) yield return null;
                     Loom.RunAsync(() =>
                     {
-                    //client request
-                    while (!stop)
+                        //client request
+                        while (!stop)
                         {
                             Sender();
                             System.Threading.Thread.Sleep(FoundServer ? 1 : 200);
@@ -277,12 +285,12 @@ namespace FMETP
                                 ClientListener.Client.SendBufferSize = udpSendBufferSize;
                                 ClientListener.Client.ReceiveBufferSize = udpReceiveBufferSize;
                                 ClientListener.Client.ReceiveTimeout = 2000;
-                            //ClientListener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+                                //ClientListener.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-                            if (SupportMulticast)
+                                if (SupportMulticast)
                                 {
-                                //enable multicast option
-                                ClientListener.MulticastLoopback = true;
+                                    //enable multicast option
+                                    ClientListener.MulticastLoopback = true;
                                     ClientListener.JoinMulticastGroup(IPAddress.Parse(MulticastAddress));
                                 }
 
@@ -293,91 +301,91 @@ namespace FMETP
                             {
                                 while (!stop && ClientListener.Client.Available > 0)
                                 {
-                                    byte[] ReceivedData = ClientListener.Receive(ref ServerEp);
-                                    int ReceivedDataLength = ReceivedData.Length;
+                                    byte[] _receivedData = ClientListener.Receive(ref ServerEp);
+                                    int _receivedDataLength = _receivedData.Length;
                                     LastReceivedTimeMS = Environment.TickCount;
 
-                                //=======================Decode Data=======================
-                                if (!FoundServer)
+                                    //=======================Decode Data=======================
+                                    if (!FoundServer)
                                     {
-                                    //looking for server and handshake
-                                    if (AutoNetworkDiscovery)
+                                        //looking for server and handshake
+                                        if (AutoNetworkDiscovery)
                                         {
-                                            if (ReceivedDataLength == 1)
+                                            if (_receivedDataLength == 1)
                                             {
-                                            //Received Auto Network Discovery signal from Server
-                                            if (ReceivedData[0] == 93)
+                                                //Received Auto Network Discovery signal from Server
+                                                if (_receivedData[0] == 93)
                                                 {
                                                     ServerIP = ServerEp.Address.ToString();
                                                     FoundServer = true;
 
-                                                //handshaking signal
-                                                SendHandShaking(new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort));
-                                                    EnqueueReceivedPacket(ReceivedData);
+                                                    //handshaking signal
+                                                    SendHandShaking(new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort));
+                                                    EnqueueReceivedPacket(_receivedData);
                                                 }
                                             }
                                         }
                                         else
                                         {
-                                        //Any response from server will be consider as handshake
-                                        if (ServerIP == ServerEp.Address.ToString())
+                                            //Any response from server will be consider as handshake
+                                            if (ServerIP == ServerEp.Address.ToString())
                                             {
                                                 FoundServer = true;
 
-                                            //handshaking signal
-                                            SendHandShaking(new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort));
-                                                EnqueueReceivedPacket(ReceivedData);
+                                                //handshaking signal
+                                                SendHandShaking(new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort));
+                                                EnqueueReceivedPacket(_receivedData);
                                             }
                                         }
                                     }
                                     else
                                     {
-                                        if (ReceivedDataLength == 1)
+                                        if (_receivedDataLength == 1)
                                         {
-                                        //Received Close() command from Server
-                                        if (ReceivedData[0] == 94)
+                                            //Received Close() command from Server
+                                            if (_receivedData[0] == 94)
                                             {
                                                 destroy = true;
                                                 stop = true;
                                             }
-                                            else if (ReceivedData[0] == 95)
+                                            else if (_receivedData[0] == 95)
                                             {
-                                            //Down server...
-                                            FoundServer = false;
+                                                //Down server...
+                                                FoundServer = false;
                                             }
                                         }
                                     }
 
                                     UInt16 _verifiedAckID = 0;
-                                    if (ReceivedDataLength > 4)
+                                    if (_receivedDataLength > 4)
                                     {
-                                        EnqueueReceivedPacket(ReceivedData);
+                                        EnqueueReceivedPacket(_receivedData);
 
-                                    //ack send queue
-                                    if (ReceivedData[2] != 0 && ReceivedData[3] != 0)
+                                        //ack send queue
+                                        if (_receivedData[2] != 0 && _receivedData[3] != 0)
                                         {
-                                            _appendQueueAck.Enqueue(new byte[] { ReceivedData[2], ReceivedData[3] });
+                                            _appendQueueAck.Enqueue(new byte[] { _receivedData[2], _receivedData[3] });
                                         }
                                     }
-                                    else if (ReceivedDataLength <= 2)
+                                    else if (_receivedDataLength <= 2)
                                     {
-                                    //ack received
-                                    if (_appendQueueRetryPacket.Count > 0)
+                                        //ack received
+                                        if (_appendQueueRetryPacket.Count > 0)
                                         {
-                                            if (ReceivedData.Length == 2) _verifiedAckID = BitConverter.ToUInt16(ReceivedData, 0);
+                                            if (_receivedData.Length == 2) _verifiedAckID = BitConverter.ToUInt16(_receivedData, 0);
 
                                             bool _completed = false;
                                             if (_verifiedAckID == 0)
                                             {
-                                            //Debug.LogError("confirmed AckID");
-                                            _completed = true;
+                                                //Debug.LogError("confirmed AckID");
+                                                _completed = true;
                                             }
                                             while (!_completed)
                                             {
                                                 if (_appendQueueRetryPacket.Count <= 0)
                                                 {
-                                                //complete when there is no retry packet to check
-                                                _completed = true;
+                                                    //complete when there is no retry packet to check
+                                                    _completed = true;
                                                 }
                                                 else
                                                 {
@@ -385,8 +393,8 @@ namespace FMETP
                                                     {
                                                         if (retryPacket.syncID == _verifiedAckID)
                                                         {
-                                                        //found matching packet, confirmed
-                                                        _completed = true;
+                                                            //found matching packet, confirmed
+                                                            _completed = true;
                                                         }
                                                         else
                                                         {
@@ -398,8 +406,8 @@ namespace FMETP
                                             }
                                         }
                                     }
-                                //=======================Decode Data=======================
-                            }
+                                    //=======================Decode Data=======================
+                                }
                             }
                         }
                         catch
@@ -413,22 +421,25 @@ namespace FMETP
                 });
                 //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Client Receiver ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+                //try sending handshaking to reach server as fast as possible, after client listener initialised
+                SendHandShaking(new IPEndPoint(IPAddress.Parse(Manager.ReadBroadcastAddress), ServerListenPort));
+
                 //processing
                 while (!stop)
                 {
                     CurrentSeenTimeMS = Environment.TickCount;
 
                     #region Check Connection Status
-                    bool connected = false;
+                    bool _connected = false;
                     if (FoundServer)
                     {
-                        int connectionThreshold = 10000;//10sec
-                        connected = EnvironmentTickCountDelta(CurrentSeenTimeMS, LastReceivedTimeMS) < connectionThreshold;
+                        int _connectionThreshold = 10000;//10sec
+                        _connected = EnvironmentTickCountDelta(CurrentSeenTimeMS, LastReceivedTimeMS) < _connectionThreshold;
                     }
 
-                    if (IsConnected != connected)
+                    if (IsConnected != _connected)
                     {
-                        if (connected)
+                        if (_connected)
                         {
                             Manager.OnFoundServer(ServerIP);
                         }
@@ -443,7 +454,7 @@ namespace FMETP
                             _appendQueueRetryPacket = new ConcurrentQueue<FMPacket>();
                             _appendQueueMissingPacket = new ConcurrentQueue<FMPacket>();
                         }
-                        IsConnected = connected;
+                        IsConnected = _connected;
                     }
                     #endregion
 
@@ -454,22 +465,29 @@ namespace FMETP
                         {
                             if (Manager != null)
                             {
-                                byte[] ReceivedData = _packet.SendByte;
-                                if (ReceivedData.Length > 4)
+                                byte[] _receivedData = _packet.SendByte;
+                                if (_receivedData.Length > 4)
                                 {
-                                    byte[] _meta = new byte[] { ReceivedData[0], ReceivedData[1] };
-                                    byte[] _data = new byte[ReceivedData.Length - 4];
-                                    Buffer.BlockCopy(ReceivedData, 4, _data, 0, _data.Length);
+                                    byte[] _meta = new byte[] { _receivedData[0], _receivedData[1] };
+                                    byte[] _data = new byte[_receivedData.Length - 4];
+                                    Buffer.BlockCopy(_receivedData, 4, _data, 0, _data.Length);
 
                                     //process received data>> byte data: 0, string msg: 1, network object data: 2
                                     switch (_meta[0])
                                     {
                                         case 0: Manager.OnReceivedByteDataEvent.Invoke(_data); break;
                                         case 1: Manager.OnReceivedStringDataEvent.Invoke(Encoding.ASCII.GetString(_data)); break;
-                                        case 2: Manager.Action_SyncNetworkObjectTransform(_data); break;
+                                        case 11:
+                                            try
+                                            {
+                                                FMNetworkFunction _fmfunction = JsonUtility.FromJson<FMNetworkFunction>(Encoding.ASCII.GetString(_data));
+                                                if (_fmfunction != null) Manager.OnReceivedNetworkFunction(_fmfunction);
+                                            }
+                                            catch { }
+                                            break;
                                     }
                                 }
-                                Manager.GetRawReceivedData.Invoke(ReceivedData);
+                                Manager.GetRawReceivedData.Invoke(_receivedData);
                             }
                         }
                     }
@@ -488,7 +506,7 @@ namespace FMETP
             }
             public int ReceivedCount = 0;
 
-            IEnumerator MainThreadSenderCOR()
+            private IEnumerator MainThreadSenderCOR()
             {
                 //client request
                 while (!stop)
@@ -498,20 +516,14 @@ namespace FMETP
                 }
             }
 
-            void SendHandShaking(IPEndPoint ipEndPoint)
+            private void SendHandShaking(IPEndPoint ipEndPoint)
             {
                 if (Client == null) return;
-                try { Client.Send(new byte[] { 93 }, 1, ipEndPoint); }
-                catch { if (Client != null) Client.Close(); Client = null; }
-            }
-            void SendClosed()
-            {
-                if (Client == null) return;
-                try { Client.Send(new byte[] { 94 }, 1, new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort)); }
+                try { Client.Send(new byte[] { (byte)FMClientSignal.handshake }, 1, ipEndPoint); }
                 catch { if (Client != null) Client.Close(); Client = null; }
             }
 
-            void Sender()
+            private void Sender()
             {
                 try
                 {
@@ -524,7 +536,6 @@ namespace FMETP
                         Client.EnableBroadcast = true;
                     }
 
-                    byte[] RequestData = new byte[1];
                     if (FoundServer == false && AutoNetworkDiscovery)
                     {
                         if (EnvironmentTickCountDelta(CurrentSeenTimeMS, LastSentTimeMS) > 2000)
@@ -539,43 +550,43 @@ namespace FMETP
                         //send to server ip only
                         if (_appendQueueSendPacket.Count > 0 || _appendQueueAck.Count > 0 || _appendQueueMissingPacket.Count > 0)
                         {
-                            bool sent = false;
+                            bool _sent = false;
 
                             //send queuedAck
-                            int ackCount = 0;
-                            while (_appendQueueAck.Count > 0 && ackCount < 100)
+                            int _ackCount = 0;
+                            while (_appendQueueAck.Count > 0 && _ackCount < 100)
                             {
-                                ackCount++;
+                                _ackCount++;
                                 if (_appendQueueAck.TryDequeue(out byte[] _ackBytes))
                                 {
-                                    if (SendPacket(_ackBytes)) sent = true;
+                                    if (SendPacket(_ackBytes)) _sent = true;
                                 }
                             }
 
                             //limit 30 packet sent in each frame, solved overhead issue on receiver
-                            int sendCount = 0;
-                            while (_appendQueueSendPacket.Count > 0 && sendCount < 100)
+                            int _sendCount = 0;
+                            while (_appendQueueSendPacket.Count > 0 && _sendCount < 100)
                             {
-                                sendCount++;
+                                _sendCount++;
                                 if (_appendQueueSendPacket.TryDequeue(out FMPacket _packet))
                                 {
-                                    if (SendPacket(_packet)) sent = true;
+                                    if (SendPacket(_packet)) _sent = true;
                                 }
                             }
 
-                            int missingCount = 0;
-                            while (_appendQueueMissingPacket.Count > 0 && missingCount < 100)
+                            int _missingCount = 0;
+                            while (_appendQueueMissingPacket.Count > 0 && _missingCount < 100)
                             {
-                                missingCount++;
+                                _missingCount++;
                                 if (_appendQueueMissingPacket.TryDequeue(out FMPacket _missingPacket))
                                 {
                                     _missingPacket.Reliable = true;
                                     SendPacket(_missingPacket);
                                 }
                             }
-                            sendBufferThreshold = missingCount > 0 ? sendBufferThresholdMin : sendBufferThresholdMax;
+                            sendBufferThreshold = _missingCount > 0 ? sendBufferThresholdMin : sendBufferThresholdMax;
 
-                            if (sent) LastSentTimeMS = Environment.TickCount;
+                            if (_sent) LastSentTimeMS = Environment.TickCount;
                         }
                         else
                         {
@@ -595,28 +606,28 @@ namespace FMETP
                 }
             }
 
-            int sendBufferSize = 0;
-            int sendBufferThreshold = 1024 * 128;
-            int sendBufferThresholdMin = 1024 * 8;
-            int sendBufferThresholdMax = 1024 * 128;
+            private int sendBufferSize = 0;
+            private int sendBufferThreshold = 1024 * 128;
+            private int sendBufferThresholdMin = 1024 * 8;
+            private int sendBufferThresholdMax = 1024 * 128;
 
-            bool SendPacket(byte[] _bytes)
+            private bool SendPacket(byte[] _bytes)
             {
-                bool sent = false;
+                bool _sent = false;
                 try
                 {
                     Client.Send(_bytes, _bytes.Length, new IPEndPoint(ForceBroadcast ? IPAddress.Parse(Manager.ReadBroadcastAddress) : IPAddress.Parse(ServerIP), ServerListenPort));
-                    sent = true;
+                    _sent = true;
                 }
                 catch
                 {
                     if (Client != null) Client.Close(); Client = null;
                 }
-                return sent;
+                return _sent;
             }
-            bool SendPacket(FMPacket _packet)
+            private bool SendPacket(FMPacket _packet)
             {
-                bool sent = false;
+                bool _sent = false;
                 sendBufferSize += _packet.SendByte.Length;
                 if (sendBufferSize > sendBufferThreshold)
                 {
@@ -635,7 +646,7 @@ namespace FMETP
                 {
                     //default mode, non-broadcasting
                     Client.Send(_packet.SendByte, _packet.SendByte.Length, new IPEndPoint(IPAddress.Parse(ServerIP), ServerListenPort));
-                    sent = true;
+                    _sent = true;
                 }
                 else
                 {
@@ -644,7 +655,7 @@ namespace FMETP
                     {
                         //ignore broadcast, if you have a target IP
                         Client.Send(_packet.SendByte, _packet.SendByte.Length, new IPEndPoint(IPAddress.Parse(_packet.TargetIP), ServerListenPort));
-                        if (_packet.TargetIP == ServerIP) sent = true;
+                        if (_packet.TargetIP == ServerIP) _sent = true;
                     }
                     else
                     {
@@ -652,30 +663,30 @@ namespace FMETP
                         _packet.SendByte[1] = 1;//when broadcast mode enabled, force the send type to server(SendByte[1] = 1), then it won't send twice to others
 
                         Client.Send(_packet.SendByte, _packet.SendByte.Length, new IPEndPoint(IPAddress.Parse(Manager.ReadBroadcastAddress), ServerListenPort));
-                        sent = true;
+                        _sent = true;
                     }
 
                     if (EnvironmentTickCountDelta(CurrentSeenTimeMS, LastSentTimeMS) > 2000)
                     {
                         //check connection: minimum 2000ms
                         SendHandShaking(new IPEndPoint(IPAddress.Parse(Manager.ReadBroadcastAddress), ServerListenPort));
-                        sent = true;
+                        _sent = true;
                     }
                 }
 
                 //buffer retry... check ack later
                 if (_packet.Reliable) _appendQueueRetryPacket.Enqueue(_packet);
 
-                return sent;
+                return _sent;
             }
 
-            public bool ShowLog = true;
+            public bool ShowLog { get { return Manager.ShowLog; } }
             public void DebugLog(string _value) { if (ShowLog) Debug.Log(_value); }
 
             private void OnApplicationQuit() { StopAll(); }
             private void OnDisable() { StopAll(); }
             private void OnDestroy() { StopAll(); }
-            private void OnEnable() { StartAll(1f); }
+            private void OnEnable() { StartAll(0.1f); }
 
             private bool isPaused = false;
             private bool isPaused_old = false;
@@ -687,9 +698,6 @@ namespace FMETP
             }
 
 #if !UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID || WINDOWS_UWP)
-            //private void OnApplicationPause(bool pause) { if (pause) StopAll(); }
-            //private void OnApplicationFocus(bool focus) { if (focus) StartAll(1f); }
-
             //try fixing Android/Mobile connection issue after a pause...
             //some devices will trigger OnApplicationPause only, when some devices will trigger both...etc
             private void ResetFromPause()
@@ -698,7 +706,7 @@ namespace FMETP
                 needResetFromPaused = false;
 
                 StopAll();
-                StartAll(1f);
+                StartAll(0.1f);
             }
             private void OnApplicationPause(bool pause)
             {
@@ -727,7 +735,7 @@ namespace FMETP
                 set { Interlocked.Exchange(ref _initialised, Convert.ToInt64(value)); }
             }
 
-            private IEnumerator StartAllDelayCOR(float _delay = 1f)
+            private IEnumerator StartAllDelayCOR(float _delay = 0.1f)
             {
                 yield return new WaitForSecondsRealtime(_delay);
                 yield return null;
@@ -738,7 +746,7 @@ namespace FMETP
             {
                 if (_delay > 0f)
                 {
-                    StartCoroutine(StartAllDelayCOR(1f));
+                    StartCoroutine(StartAllDelayCOR(_delay));
                     return;
                 }
 
@@ -764,7 +772,6 @@ namespace FMETP
                 //try sending disconnect signal 94 as possible, before destroy
                 if (IsConnected && FoundServer)
                 {
-                    //SendClosed();
                     //send status "closed" in background before end...
                     SendClientClosedAsync(ServerIP, ServerListenPort);
 

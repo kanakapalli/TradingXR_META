@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 /*
  * SocketPacketType.cs
  *
@@ -27,7 +27,7 @@
  */
 #endregion
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     [CustomEditor(typeof(AudioDecoder))]
     [CanEditMultipleObjects]

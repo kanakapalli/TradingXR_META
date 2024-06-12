@@ -34,7 +34,7 @@ using System.Text;
 using UnityEngine;
 using WebSocketSharp;
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

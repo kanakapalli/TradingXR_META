@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace FMETP
+namespace FMSolution
 {
 #if !FM_WEBCAM_DISABLED
     public class WebcamManager : MonoBehaviour

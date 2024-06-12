@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace FMETP
+namespace FMSolution
 {
     public class TargetProjectionMatrix : MonoBehaviour
     {

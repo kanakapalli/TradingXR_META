@@ -1,8 +1,8 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEditor;
 
-namespace FMETP
+namespace FMSolution.FMWebSocket
 {
     [CustomEditor(typeof(FMWebSocketManager))]
     [CanEditMultipleObjects]

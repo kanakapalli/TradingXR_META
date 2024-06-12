@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -9,8 +9,20 @@ using System.Collections.Concurrent;
 using System.Text;
 using System.Threading;
 
-namespace FMETP
+namespace FMSolution.FMWebSocket
 {
+    public enum FMSslProtocols
+    {
+        Default = 0xF0,
+        None = 0x0,
+        Ssl2 = 0xC,
+        Ssl3 = 0x30,
+        Tls = 0xC0,
+#if UNITY_2019_1_OR_NEWER
+        Tls11 = 0x300,
+        Tls12 = 0xC00
+#endif
+    }
     public class FMWebSocket
     {
         public class FMWebSocketComponent : MonoBehaviour

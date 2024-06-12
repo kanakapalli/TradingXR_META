@@ -1495,6 +1495,7 @@ GameObject:
   - component: {fileID: 564806944}
   - component: {fileID: 564806943}
   - component: {fileID: 564806942}
+  - component: {fileID: 564806946}
   m_Layer: 0
   m_Name: '[Network Object] Cube'
   m_TagString: Untagged
@@ -1578,6 +1579,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: -45, y: 0, z: 0}
+--- !u!114 &564806946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 564806941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fac02e6b81e3b4e7ea7b6b9938711fb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FMNetwork: {fileID: 1838235703}
+  viewID: 1
+  isOwner: 0
+  TakeOwnership: 0
+  SyncFPS: 20
+  SyncType: 255
 --- !u!1 &568185175
 GameObject:
   m_ObjectHideFlags: 0
@@ -2889,6 +2908,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e7f01c05f0674cfc872b404738b3677, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fmnetwork: {fileID: 1838235703}
   ServerText: {fileID: 1510977039}
   ClientText: {fileID: 1679517094}
   Box1: {fileID: 564806941}
@@ -5237,6 +5257,7 @@ GameObject:
   - component: {fileID: 1478883919}
   - component: {fileID: 1478883918}
   - component: {fileID: 1478883917}
+  - component: {fileID: 1478883921}
   m_Layer: 0
   m_Name: '[Network Object] Cube'
   m_TagString: Untagged
@@ -5320,6 +5341,24 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1478883921
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1478883916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fac02e6b81e3b4e7ea7b6b9938711fb5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  FMNetwork: {fileID: 1838235703}
+  viewID: 2
+  isOwner: 0
+  TakeOwnership: 0
+  SyncFPS: 20
+  SyncType: 255
 --- !u!1 &1500477103
 GameObject:
   m_ObjectHideFlags: 0
@@ -7060,16 +7099,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   EditorShowNetworking: 1
   EditorShowSyncTransformation: 1
-  EditorShowEvents: 1
+  EditorShowEvents: 0
   EditorShowDebug: 1
   EditorShowServerSettings: 0
   EditorShowClientSettings: 0
   EditorShowDataStreamSettings: 0
-  EditorShowNetworkObjects: 0
+  EditorShowNetworkObjects: 1
   EditorShowReceiverEvents: 0
   EditorShowConnectionEvents: 0
   AutoInit: 0
-  Initialised: 0
   NetworkType: 0
   Server: {fileID: 0}
   Client: {fileID: 0}
@@ -7094,10 +7132,12 @@ MonoBehaviour:
     DataStreamType: 0
     DataStreamProtocol: 0
     ClientListenPort: 3001
-    UDPListenerType: 0
+    UDPTransferType: 0
+    TCPSocketType: 0
     MulticastAddress: 239.255.255.255
     IsConnected: 0
     ClientIP: 127.0.0.1
+    ClientIPList: []
     UseMainThreadSender: 1
   DebugStatus: 1
   ShowLog: 1
@@ -7166,17 +7206,15 @@ MonoBehaviour:
   OnClientDisconnectedEvent:
     m_PersistentCalls:
       m_Calls: []
+  OnConnectionCountChangedEvent:
+    m_PersistentCalls:
+      m_Calls: []
   OnFoundServerEvent:
     m_PersistentCalls:
       m_Calls: []
   OnLostServerEvent:
     m_PersistentCalls:
       m_Calls: []
-  NetworkObjects:
-  - {fileID: 564806941}
-  - {fileID: 1478883916}
-  SyncFPS: 20
-  EnableNetworkObjectsSync: 1
 --- !u!4 &1838235704
 Transform:
   m_ObjectHideFlags: 0

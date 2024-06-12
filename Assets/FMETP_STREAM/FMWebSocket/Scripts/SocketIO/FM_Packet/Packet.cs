@@ -27,7 +27,7 @@
  */
 #endregion
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

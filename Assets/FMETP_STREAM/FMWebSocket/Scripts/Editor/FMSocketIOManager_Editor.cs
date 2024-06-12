@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEditor;
 
-namespace FMETP
+namespace FMSolution.FMSocketIO
 {
     [CustomEditor(typeof(FMSocketIOManager))]
     [CanEditMultipleObjects]

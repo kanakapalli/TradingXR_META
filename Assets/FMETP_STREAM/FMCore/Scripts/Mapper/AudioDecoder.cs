@@ -1,10 +1,9 @@
 ﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System;
 using System.Collections.Concurrent;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     public enum AudioDecoderSourceFormat { Auto, Manual }
     [RequireComponent(typeof(AudioSource)), AddComponentMenu("FMETP/Mapper/AudioDecoder")]
@@ -18,7 +17,7 @@ namespace FMETP
         #endregion
 
         // Use this for initialization
-        void Start()
+        private void Start()
         {
             Application.runInBackground = true;
             DeviceSampleRate = AudioSettings.GetConfiguration().sampleRate;
@@ -118,7 +117,7 @@ namespace FMETP
             if (Application.platform != RuntimePlatform.WebGLPlayer)
             {
                 ReadyToGetFrame = false;
-                float[] ABuffer = FMCoreTools.ToFloatArray(receivedAudioBytes);
+                float[] ABuffer = FMCoreTools_V3.ToFloatArray(receivedAudioBytes);
                 for (int i = 0; i < ABuffer.Length; i++) ABufferQueue.Enqueue(ABuffer[i]);
 
                 CreateClip();
@@ -134,7 +133,7 @@ namespace FMETP
             if (Application.platform != RuntimePlatform.WebGLPlayer)
             {
                 ReadyToGetFrame = false;
-                if (GZipMode) yield return FMCoreTools.RunCOR<byte[]>(FMCoreTools.FMUnzippedByteCOR(receivedAudioBytes), (output) => receivedAudioBytes = output);
+                if (GZipMode) yield return FMCoreTools_V3.RunCOR<byte[]>(FMCoreTools_V3.FMUnzippedByteCOR(receivedAudioBytes), (output) => receivedAudioBytes = output);
 
                 if (receivedAudioBytes.Length >= 8 + 1024)
                 {
@@ -150,7 +149,7 @@ namespace FMETP
                     SourceSampleRate = BitConverter.ToInt32(_sampleRateByte, 0);
                     SourceChannels = BitConverter.ToInt32(_channelsByte, 0);
 
-                    float[] ABuffer = FMCoreTools.ToFloatArray(_audioByte);
+                    float[] ABuffer = FMCoreTools_V3.ToFloatArray(_audioByte);
 
                     for (int i = 0; i < ABuffer.Length; i++) ABufferQueue.Enqueue(ABuffer[i]);
 
@@ -199,9 +198,6 @@ namespace FMETP
                 count++;
             }
         }
-
         private void OnAudioSetPosition(int newPosition) { position = newPosition; }
     }
-
-
 }

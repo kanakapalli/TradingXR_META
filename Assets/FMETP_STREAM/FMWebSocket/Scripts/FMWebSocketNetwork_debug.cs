@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using FMETP.FMSocketIO;
-
-namespace FMETP
+using FMSolution.FMWebSocket;
+using FMSolution.FMSocketIO;
+namespace FMSolution
 {
     [System.Serializable] public enum DemoDebugSystem { FMWebSocket, FMSocketIO }
     public class FMWebSocketNetwork_debug : MonoBehaviour

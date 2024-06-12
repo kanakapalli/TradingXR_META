@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
-namespace FMETP
+namespace FMSolution
 {
     [System.Serializable] public class UnityEventFloat : UnityEvent<float> { }
     [System.Serializable] public class UnityEventFloatArray : UnityEvent<float[]> { }

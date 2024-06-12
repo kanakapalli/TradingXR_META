@@ -4,7 +4,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;// Required when using Event data.
 using UnityEngine.Events;
 
-namespace FMETP
+namespace FMSolution
 {
     [System.Serializable] public class _UnityEventFloat : UnityEvent<float> { }
     public class PointerEvents : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerEnterHandler, IPointerExitHandler
@@ -23,14 +23,14 @@ namespace FMETP
         public UnityEvent OnPressExitEvent;
 
         // Start is called before the first frame update
-        void Start()
+        private void Start()
         {
             if (mask == null) mask = GetComponent<Image>();
             ColorOnNormal = mask.color;
         }
 
         // Update is called once per frame
-        void Update()
+        private void Update()
         {
             if (isPressed)
             {

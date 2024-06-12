@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 /*
  * SocketIOException.cs
  *
@@ -28,7 +28,7 @@
 #endregion
 using System;
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

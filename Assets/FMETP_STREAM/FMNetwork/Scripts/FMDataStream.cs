@@ -12,18 +12,18 @@ using System.Threading;
  * Connect via ssh:
  * ssh root@192.168.xx.xx
  * Pwd: root
- * 
+ *
  * Stop Default Stream:
  * /opt/StereoPi/stop.sh
- * 
+ *
  * Sending stream from Raspberry:
- * 
+ *
  * For UDP:
  * raspivid -t 0 -w 1280 -h 720 -fps 30 -3d sbs -cd MJPEG -o - | nc 192.168.1.10 3001 -u
  *
  * For TCP:
  * raspivid -t 0 -w 1280 -h 720 -fps 30 -3d sbs -cd MJPEG -o - | nc 192.168.1.10 3001
- * 
+ *
  * where 192.168.1.10 3001 - IP and port
 */
 
@@ -31,12 +31,12 @@ using System.Threading;
  * + GStreamer Commands(Example):
  * + Desktop Capture to Unity
  * gst-launch-1.0 gdiscreencapsrc ! queue ! video/x-raw,framerate=60/1,width=1920, height=1080 ! jpegenc ! rndbuffersize max=65000 ! udpsink host=192.168.1.10 port=3001
- * 
+ *
  * + Video Stream to Unity
  * gst-launch-1.0 filesrc location="videopath.mp4" ! queue ! decodebin ! videoconvert ! jpegenc ! rndbuffersize max=65000 ! udpsink host=192.168.1.10 port=3001
  */
 
-namespace FMETP
+namespace FMSolution.FMNetwork
 {
     public class FMDataStream
     {
@@ -46,8 +46,8 @@ namespace FMETP
             private int udpSendBufferSize = 1024 * 65; //max 65535
             private int udpReceiveBufferSize = 1024 * 1024 * 4; //max 2147483647
 #else
-        private int udpSendBufferSize = 1024 * 60; //max 65535
-        private int udpReceiveBufferSize = 1024 * 512; //max 2147483647
+            private int udpSendBufferSize = 1024 * 60; //max 65535
+            private int udpReceiveBufferSize = 1024 * 512; //max 2147483647
 #endif
 
             [HideInInspector] public FMNetworkManager Manager;
@@ -74,6 +74,7 @@ namespace FMETP
                 }
             }
 
+            public string ServerIP { get { return Manager.DataStreamSettings.ServerIP; } }
             //Sender props..
             public string ClientIP { get { return Manager.DataStreamSettings.ClientIP; } }
             public List<string> ClientIPList { get { return Manager.DataStreamSettings.ClientIPList; } }
@@ -85,7 +86,8 @@ namespace FMETP
             {
                 _appendSendBytes.Enqueue(inputBytes);
             }
-            IEnumerator NetworkClientStartUDPSenderCOR()
+
+            private IEnumerator NetworkClientStartUDPSenderCOR()
             {
                 stop = false;
 
@@ -114,7 +116,7 @@ namespace FMETP
                 }
             }
 
-            IEnumerator MainThreadSenderCOR()
+            private IEnumerator MainThreadSenderCOR()
             {
                 //client request
                 while (!stop)
@@ -213,6 +215,7 @@ namespace FMETP
                 return gap;
             }
 
+            private int connectionThreshold = 3000;//3sec
             private long _currentSeenTimeMS = 0;
             public int CurrentSeenTimeMS
             {
@@ -256,7 +259,7 @@ namespace FMETP
                     tcpServer_Listener.Server.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
                     // create LOOM thread, only create on first time, otherwise we will crash max thread limit
-                    // Wait for client to connect in another Thread 
+                    // Wait for client to connect in another Thread
                     Loom.RunAsync(() =>
                     {
                         while (!stop)
@@ -393,7 +396,7 @@ namespace FMETP
             private void TCPClient_ConnectAndReceive()
             {
                 udpClient_Receiver = new TcpClient();
-                IAsyncResult result = udpClient_Receiver.BeginConnect(IPAddress.Parse(ClientIP), ClientListenPort, null, null);
+                IAsyncResult result = udpClient_Receiver.BeginConnect(IPAddress.Parse(ServerIP), ClientListenPort, null, null);
                 result.AsyncWaitHandle.WaitOne(1000, true);
                 if (!udpClient_Receiver.Connected)
                 {
@@ -426,7 +429,7 @@ namespace FMETP
             #endregion
 
             #region UDP
-            IEnumerator NetworkClientStartUDPListenerCOR()
+            private IEnumerator NetworkClientStartUDPListenerCOR()
             {
                 LastReceivedTimeMS = Environment.TickCount;
 
@@ -527,6 +530,18 @@ namespace FMETP
 
                 stop = false;
 
+                CurrentSeenTimeMS = Environment.TickCount;
+                if (CurrentSeenTimeMS > 0)
+                {
+                    LastSentTimeMS = CurrentSeenTimeMS - connectionThreshold;
+                    LastReceivedTimeMS = CurrentSeenTimeMS - connectionThreshold;
+                }
+                else
+                {
+                    LastSentTimeMS = int.MaxValue - connectionThreshold;
+                    LastReceivedTimeMS = int.MaxValue - connectionThreshold;
+                }
+
                 if (DataStreamType == FMDataStreamType.Receiver)
                 {
                     switch (Protocol)
@@ -621,10 +636,10 @@ namespace FMETP
             private void Update()
             {
                 CurrentSeenTimeMS = Environment.TickCount;
-                IsConnected = EnvironmentTickCountDelta(CurrentSeenTimeMS, LastReceivedTimeMS) < 3000;
+                IsConnected = EnvironmentTickCountDelta(CurrentSeenTimeMS, LastReceivedTimeMS) < connectionThreshold;
             }
 
-            public bool ShowLog = true;
+            public bool ShowLog { get { return Manager.ShowLog; } }
             public void DebugLog(string _value) { if (ShowLog) Debug.Log(_value); }
 
             private void OnApplicationQuit() { StopAll(); }
@@ -642,9 +657,6 @@ namespace FMETP
             }
 
 #if !UNITY_EDITOR && (UNITY_IOS || UNITY_ANDROID || WINDOWS_UWP)
-            //private void OnApplicationPause(bool pause) { if (pause) StopAll(); }
-            //private void OnApplicationFocus(bool focus) { if (focus) StartAll(1f); }
-
             //try fixing Android/Mobile connection issue after a pause...
             //some devices will trigger OnApplicationPause only, when some devices will trigger both...etc
             private void ResetFromPause()

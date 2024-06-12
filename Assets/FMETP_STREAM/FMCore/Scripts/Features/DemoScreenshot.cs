@@ -5,7 +5,7 @@ using System.IO;
 using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 
-namespace FMETP
+namespace FMSolution.FMETP
 {
     public class DemoScreenshot : MonoBehaviour
     {

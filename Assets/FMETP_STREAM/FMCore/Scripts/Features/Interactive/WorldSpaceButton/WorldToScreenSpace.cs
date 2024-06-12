@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 using UnityEngine.Events;
 
-namespace FMETP
+namespace FMSolution
 {
     public class WorldToScreenSpace : MonoBehaviour
     {

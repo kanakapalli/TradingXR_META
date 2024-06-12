@@ -1,4 +1,4 @@
-#region License
+﻿#region License
 /*
  * Parser.cs
  *
@@ -27,7 +27,7 @@
 #endregion
 using UnityEngine;
 
-namespace FMETP
+namespace FMSolution
 {
     namespace FMSocketIO
     {

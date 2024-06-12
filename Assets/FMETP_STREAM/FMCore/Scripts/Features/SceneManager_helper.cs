@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace FMETP
+namespace FMSolution
 {
     public class SceneManager_helper : MonoBehaviour
     {

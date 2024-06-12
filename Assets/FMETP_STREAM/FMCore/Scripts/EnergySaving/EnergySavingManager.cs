@@ -5,7 +5,7 @@ using System;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
 
-namespace FMETP
+namespace FMSolution
 {
     public class EnergySavingManager : MonoBehaviour
     {

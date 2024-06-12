@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace FMETP
+namespace FMSolution
 {
     public class FPSManager : MonoBehaviour
     {

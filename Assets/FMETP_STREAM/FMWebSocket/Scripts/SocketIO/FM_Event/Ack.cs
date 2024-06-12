@@ -28,7 +28,7 @@
 
 using System;
 
-namespace FMETP
+namespace FMSolution
 {
 	namespace FMSocketIO
 	{

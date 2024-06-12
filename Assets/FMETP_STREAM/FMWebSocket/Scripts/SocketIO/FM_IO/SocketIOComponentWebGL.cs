@@ -3,13 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 
-using FMETP.FMSocketIO;
 using WebSocketSharp;
 using WebSocketSharp.Net;
 
 using System.Runtime.InteropServices;
 
-namespace FMETP
+namespace FMSolution.FMSocketIO
 {
     [System.Serializable]
     public class EventJson

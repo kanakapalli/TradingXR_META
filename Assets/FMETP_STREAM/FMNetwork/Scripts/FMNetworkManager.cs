@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 
 
@@ -9,13 +10,19 @@ using System.Net.Sockets;
 using System.Net.NetworkInformation;
 using System.Threading;
 
-namespace FMETP
+namespace FMSolution.FMNetwork
 {
     public enum FMProtocol { UDP, TCP }
     public enum FMNetworkType { Server, Client, DataStream }
     public enum FMSendType { All, Server, Others, TargetIP }
-    public enum FMClientSignal { none, handshake, close }
+    public enum FMClientSignal
+    {
+        none = (byte)0,
+        handshake = (byte)93,
+        close = (byte)94
+    }
     public enum FMAckSignal { none, ackRespone, ackReceived }
+    public enum FMPacketDataType { rawByte = (byte)0, stringData = (byte)1, networkFunction = (byte)11 }
 
     public enum FMDataStreamType { Receiver, Sender }
     public enum FMUDPTransferType { Unicast, MultipleUnicast, Multicast, Broadcast }
@@ -30,8 +37,23 @@ namespace FMETP
         public bool Reliable;
         public UInt16 syncID;
     }
-    public struct FMNetworkTransform
+
+    public enum FMNetworkTransformSyncType
     {
+        None = 0,
+        All = 255,
+        PositionOnly = 1,
+        RotationOnly = 2,
+        ScaleOnly = 3,
+        PositionAndRotation = 4,
+        PositionAndScale = 5,
+        RotationAndScale = 6,
+    }
+    public struct FMNetworkTransformSyncData
+    {
+        public int viewID;
+        public bool isOwner;
+        public FMNetworkTransformSyncType syncType;
         public Vector3 position;
         public Quaternion rotation;
         public Vector3 localScale;
@@ -51,7 +73,7 @@ namespace FMETP
         public bool EditorShowClientSettings = false;
         public bool EditorShowDataStreamSettings = false;
 
-        public bool EditorShowNetworkObjects = false;
+        public bool EditorShownetworkedObjects = false;
 
         public bool EditorShowReceiverEvents = false;
         public bool EditorShowConnectionEvents = false;
@@ -268,6 +290,9 @@ namespace FMETP
 
             public bool IsConnected;
 
+            //tcp client
+            public string ServerIP = "127.0.0.1";
+
             //sender
             public string ClientIP = "127.0.0.1";
             public List<string> ClientIPList = new List<string>();
@@ -291,6 +316,31 @@ namespace FMETP
         public UnityEventString OnReceivedStringDataEvent = new UnityEventString();
         public UnityEventByteArray GetRawReceivedData = new UnityEventByteArray();
 
+        private List<GameObject> networkFunctionListenerList = new List<GameObject>();
+        public void RegisterNetworkFunctionListener(GameObject inputGameObject)
+        {
+            if (!networkFunctionListenerList.Contains(inputGameObject)) networkFunctionListenerList.Add(inputGameObject);
+        }
+        public void UnregisterNetworkFunctionListener(GameObject inputGameObject)
+        {
+            if (networkFunctionListenerList.Contains(inputGameObject)) networkFunctionListenerList.Remove(inputGameObject);
+        }
+        //public List<GameObject> GetNetworkedObjects() { return networkedObjects; }
+        public void OnReceivedNetworkFunction(FMNetworkFunction _fmfunction)
+        {
+            if (_fmfunction != null)
+            {
+                for (int i = 0; i < networkFunctionListenerList.Count; i++)
+                {
+                    try
+                    {
+                        networkFunctionListenerList[i].SendMessage(_fmfunction.FunctionName, _fmfunction.Variables != null ? _fmfunction.Variables : new object[0], SendMessageOptions.DontRequireReceiver);
+                    }
+                    catch { }
+                }
+            }
+        }
+
         //server events
         public UnityEventString OnClientConnectedEvent = new UnityEventString();
         public UnityEventString OnClientDisconnectedEvent = new UnityEventString();
@@ -299,9 +349,6 @@ namespace FMETP
         {
             OnClientConnectedEvent.Invoke(inputClientIP);
             if (ShowLog) Debug.Log("OnClientConnected: " + inputClientIP);
-
-            //force reset network sync timestamp if owned network objects
-            if (NetworkObjects.Length > 0) Server.Action_AddNetworkObjectPacket(new byte[]{ 0 }, FMSendType.TargetIP);
         }
         public void OnClientDisconnected(string inputClientIP)
         {
@@ -321,16 +368,6 @@ namespace FMETP
         {
             OnFoundServerEvent.Invoke(ServerIP);
             if (ShowLog) Debug.Log("OnFoundServer: " + ServerIP);
-
-            ResetNetworkObjectSyncTimestamp();
-        }
-
-        private void ResetNetworkObjectSyncTimestamp()
-        {
-            //reset network sync timestamp
-            CurrentTimestamp = 0f;
-            LastReceivedTimestamp = 0f;
-            TargetTimestamp = 0f;
         }
 
         public void OnLostServer(string ServerIP)
@@ -340,121 +377,190 @@ namespace FMETP
         }
 
         #region Network Objects Setup
-        [Header("[ Sync ] Server => Client")]
-        [Tooltip("Sync Transformation of Network Objects. # Both Server and Clients should have same number of NetworkObjects")]
-        public GameObject[] NetworkObjects;
-        FMNetworkTransform[] NetworkTransform;
+        private List<GameObject> networkedObjects = new List<GameObject>();
+        public List<GameObject> GetNetworkedObjects() { return networkedObjects; }
+        private Dictionary<int, FMNetworkTransformView> transformViewDictionary = new Dictionary<int, FMNetworkTransformView>();
+        public Dictionary<int, FMNetworkTransformView> GetTransformViewDictionary() { return transformViewDictionary; }
+        private int maximumTransformViewCount = 2000;
 
-        //[Tooltip("Frequency for sync (second)")]
-        private float SyncFrequency = 0.05f;
-        [Range(1f, 60f)]
-        public float SyncFPS = 20f;
-        private float SyncTimer = 0f;
-        private float SyncFPS_old = -1;
-
-        [Tooltip("When enabled, the networked objects in lists will be sync from server to clients")]
-        public bool EnableNetworkObjectsSync = true;
-
-        private float LastReceivedTimestamp = 0f;
-        private float TargetTimestamp = 0f;
-        private float CurrentTimestamp = 0f;
-
-        private void Action_SendNetworkObjectTransform()
+        public void RegisterFMNetworkID(FMNetworkTransformView inputTransformView)
         {
-            if (NetworkType == FMNetworkType.Server)
+            if (NetworkType != FMNetworkType.Server && NetworkType != FMNetworkType.Client) return;
+            if (transformViewDictionary.Count > maximumTransformViewCount)
             {
-                byte[] Timestamp = BitConverter.GetBytes(Time.realtimeSinceStartup);
-
-                byte[] Data = new byte[NetworkObjects.Length * 10 * 4];
-                byte[] SendByte = new byte[Timestamp.Length + Data.Length];
-
-                int index = 0;
-                Buffer.BlockCopy(Timestamp, 0, SendByte, index, Timestamp.Length);
-                index += Timestamp.Length;
-
-                foreach (GameObject obj in NetworkObjects)
-                {
-                    byte[] TransformByte = EncodeTransformByte(obj);
-                    Buffer.BlockCopy(TransformByte, 0, SendByte, index, TransformByte.Length);
-                    index += TransformByte.Length;
-                }
-                Server.Action_AddNetworkObjectPacket(SendByte, FMSendType.Others);
-            }
-        }
-
-        private byte[] EncodeTransformByte(GameObject obj)
-        {
-            byte[] _byte = new byte[40];
-            Vector3 _pos = obj.transform.position;
-            Quaternion _rot = obj.transform.rotation;
-            Vector3 _scale = obj.transform.localScale;
-
-            float[] _float = new float[]
-            {
-            _pos.x,_pos.y,_pos.z,
-            _rot.x,_rot.y,_rot.z,_rot.w,
-            _scale.x,_scale.y,_scale.z
-            };
-            Buffer.BlockCopy(_float, 0, _byte, 0, _byte.Length);
-            return _byte;
-        }
-
-        private float[] DecodeByteToFloatArray(byte[] _data, int _offset)
-        {
-            float[] _transform = new float[10];
-            for (int i = 0; i < _transform.Length; i++)
-            {
-                _transform[i] = BitConverter.ToSingle(_data, i * 4 + _offset);
-            }
-
-            return _transform;
-        }
-
-        internal void Action_SyncNetworkObjectTransform(byte[] _data)
-        {
-            if (_data.Length <= 4)
-            {
-                ResetNetworkObjectSyncTimestamp();
+                if (ShowLog) Debug.LogError("reached maximum transform view count: " + maximumTransformViewCount);
                 return;
             }
 
-            float Timestamp = BitConverter.ToSingle(_data, 0);
-            int meta_offset = 4;
+            transformViewDictionary.Add(inputTransformView.GetViewID(), inputTransformView);
+            if (ShowLog) Debug.Log("register: view id: " + inputTransformView.GetViewID() + ", total:" + transformViewDictionary.Count);
 
-            if (Timestamp > LastReceivedTimestamp)
+            //update network object list
+            if (!networkedObjects.Contains(inputTransformView.gameObject))
             {
-                LastReceivedTimestamp = TargetTimestamp;
-                TargetTimestamp = Timestamp;
-                CurrentTimestamp = LastReceivedTimestamp;
+                networkedObjects.Add(inputTransformView.gameObject);
+                UpdateNetworkedObjectOwnersStatus();
+            }
+        }
 
-                for (int i = 0; i < NetworkObjects.Length; i++)
+        public void UnregisterFMNetworkID(FMNetworkTransformView inputTransformView)
+        {
+            if (NetworkType != FMNetworkType.Server && NetworkType != FMNetworkType.Client) return;
+            if (transformViewDictionary.ContainsKey(inputTransformView.GetViewID()))
+            {
+                transformViewDictionary.Remove(inputTransformView.GetViewID());
+            }
+
+            if (ShowLog) Debug.Log("unregister: view id: " + inputTransformView.GetViewID() + ", total:" + transformViewDictionary.Count);
+
+            //update network object list
+            if (networkedObjects.Contains(inputTransformView.gameObject)) networkedObjects.Remove(inputTransformView.gameObject);
+        }
+
+        public Queue<FMNetworkTransformSyncData> AppendQueueTransformSyncData = new Queue<FMNetworkTransformSyncData>();
+        public void Action_EnqueueTransformSyncData(FMNetworkTransformSyncData inputSyncData)
+        {
+            if (!enabled) return;
+            if (!Initialised) return;
+            if (ServerSettings.ConnectionCount == 0 && !ClientSettings.IsConnected) return;
+            AppendQueueTransformSyncData.Enqueue(inputSyncData);
+        }
+
+        private void EncodeSyncData(FMNetworkTransformSyncData inputData, bool assignPosition, bool assignRotation, bool assignScale, ref List<byte> referenceByteList)
+        {
+            if (assignPosition)
+            {
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.position.x));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.position.y));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.position.z));
+            }
+            if (assignRotation)
+            {
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.rotation.x));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.rotation.y));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.rotation.z));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.rotation.w));
+            }
+            if (assignScale)
+            {
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.localScale.x));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.localScale.y));
+                referenceByteList.AddRange(BitConverter.GetBytes(inputData.localScale.z));
+            }
+        }
+
+        //reserve range 0-999 for internal usage
+        [Range(0, 999)] private UInt16 labelTransformView = 101;
+        private void DequeueTransformSyncData()
+        {
+            if (AppendQueueTransformSyncData.Count == 0) return;
+
+            byte[] _labelBytes = BitConverter.GetBytes(labelTransformView);
+            byte[] _timestampBytes = BitConverter.GetBytes(Time.realtimeSinceStartup);
+
+            //4 + 1 + 12 + 16 + 12 = 45
+            while (AppendQueueTransformSyncData.Count > 0)
+            {
+                List<byte> _sentBytes = new List<byte>();
+                _sentBytes.AddRange(_labelBytes);
+                _sentBytes.AddRange(_timestampBytes);
+
+                while (_sentBytes.Count < 1350 && AppendQueueTransformSyncData.Count > 0)
                 {
-                    float[] _transform = DecodeByteToFloatArray(_data, meta_offset + i * 40);
-                    NetworkTransform[i].position = new Vector3(_transform[0], _transform[1], _transform[2]);
-                    NetworkTransform[i].rotation = new Quaternion(_transform[3], _transform[4], _transform[5], _transform[6]);
-                    NetworkTransform[i].localScale = new Vector3(_transform[7], _transform[8], _transform[9]);
+                    FMNetworkTransformSyncData _syncData = AppendQueueTransformSyncData.Dequeue();
+
+                    _sentBytes.AddRange(BitConverter.GetBytes(_syncData.viewID));
+                    _sentBytes.Add((byte)_syncData.syncType);
+
+                    switch (_syncData.syncType)
+                    {
+                        case FMNetworkTransformSyncType.All: EncodeSyncData(_syncData, true, true, true, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.PositionOnly: EncodeSyncData(_syncData, true, false, false, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.RotationOnly: EncodeSyncData(_syncData, false, true, false, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.ScaleOnly: EncodeSyncData(_syncData, false, false, true, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.PositionAndRotation: EncodeSyncData(_syncData, true, true, false, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.PositionAndScale: EncodeSyncData(_syncData, true, false, true, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.RotationAndScale: EncodeSyncData(_syncData, false, true, true, ref _sentBytes); break;
+                        case FMNetworkTransformSyncType.None: break;
+                    }
+                }
+                if (_sentBytes.Count >= 17) SendToOthers(_sentBytes.ToArray());
+            }
+        }
+
+        private int DecodeSyncData(byte[] inputData, int inputOffset, bool decodePosition, bool decodeRotation, bool decodeScale, ref FMNetworkTransformSyncData referenceSyncData)
+        {
+            int _offset = inputOffset;
+            if (decodePosition)
+            {
+                referenceSyncData.position.x = BitConverter.ToSingle(inputData, _offset);
+                referenceSyncData.position.y = BitConverter.ToSingle(inputData, _offset + 4);
+                referenceSyncData.position.z = BitConverter.ToSingle(inputData, _offset + 8);
+                _offset += 12;
+            }
+            if (decodeRotation)
+            {
+                referenceSyncData.rotation.x = BitConverter.ToSingle(inputData, _offset);
+                referenceSyncData.rotation.y = BitConverter.ToSingle(inputData, _offset + 4);
+                referenceSyncData.rotation.z = BitConverter.ToSingle(inputData, _offset + 8);
+                referenceSyncData.rotation.w = BitConverter.ToSingle(inputData, _offset + 12);
+                _offset += 16;
+            }
+            if (decodeScale)
+            {
+                referenceSyncData.localScale.x = BitConverter.ToSingle(inputData, _offset);
+                referenceSyncData.localScale.y = BitConverter.ToSingle(inputData, _offset + 4);
+                referenceSyncData.localScale.z = BitConverter.ToSingle(inputData, _offset + 8);
+                _offset += 12;
+            }
+
+            return _offset;
+        }
+
+        private void Action_DecodeNetworkTransformView(byte[] inputData)
+        {
+            int _count = inputData.Length;
+            int _offset = 0;
+
+            UInt16 _label = BitConverter.ToUInt16(inputData, _offset);
+            _offset += 2;
+
+            if (_label != labelTransformView) return;
+
+            float Timestamp = BitConverter.ToSingle(inputData, _offset);
+            _offset += 4;
+
+            while (_offset < _count)
+            {
+                FMNetworkTransformSyncData _syncData = new FMNetworkTransformSyncData();
+                _syncData.viewID = BitConverter.ToInt32(inputData, _offset);
+                _syncData.syncType = (FMNetworkTransformSyncType)((int)inputData[_offset + 4]);
+                _offset += 5;
+
+                switch (_syncData.syncType)
+                {
+                    case FMNetworkTransformSyncType.All: _offset = DecodeSyncData(inputData, _offset, true, true, true, ref _syncData); break;
+                    case FMNetworkTransformSyncType.PositionOnly: _offset = DecodeSyncData(inputData, _offset, true, false, false, ref _syncData); break;
+                    case FMNetworkTransformSyncType.RotationOnly: _offset = DecodeSyncData(inputData, _offset, false, true, false, ref _syncData); break;
+                    case FMNetworkTransformSyncType.ScaleOnly: _offset = DecodeSyncData(inputData, _offset, false, false, true, ref _syncData); break;
+                    case FMNetworkTransformSyncType.PositionAndRotation: _offset = DecodeSyncData(inputData, _offset, true, true, false, ref _syncData); break;
+                    case FMNetworkTransformSyncType.PositionAndScale: _offset = DecodeSyncData(inputData, _offset, true, false, true, ref _syncData); break;
+                    case FMNetworkTransformSyncType.RotationAndScale: _offset = DecodeSyncData(inputData, _offset, false, true, true, ref _syncData); break;
+                    case FMNetworkTransformSyncType.None:
+                        break;
+                }
+
+                if (transformViewDictionary.TryGetValue(_syncData.viewID, out FMNetworkTransformView _transformView))
+                {
+                    _transformView.Action_UpdateSyncData(_syncData, Timestamp);
                 }
             }
         }
         #endregion
 
-        public void Action_InitAsServer()
-        {
-            NetworkType = FMNetworkType.Server;
-            Init();
-        }
-
-        public void Action_InitAsClient()
-        {
-            NetworkType = FMNetworkType.Client;
-            Init();
-        }
-
-        public void Action_InitDataStream()
-        {
-            NetworkType = FMNetworkType.DataStream;
-            Init();
-        }
+        public void Action_InitAsServer() { NetworkType = FMNetworkType.Server; Init(); } 
+        public void Action_InitAsClient() { NetworkType = FMNetworkType.Client; Init(); } 
+        public void Action_InitDataStream() { NetworkType = FMNetworkType.DataStream; Init(); }
         public void Action_InitDataStream(string inputClientIP)
         {
             DataStreamSettings.ClientIP = inputClientIP;
@@ -474,10 +580,12 @@ namespace FMETP
 
             ServerSettings.ConnectionCount = 0;
             ClientSettings.IsConnected = false;
+            ClientSettings.ServerIP = "";
             DataStreamSettings.IsConnected = false;
 
             UpdateDebugText();
 
+            OnReceivedByteDataEvent.RemoveListener(Action_DecodeNetworkTransformView);
             GC.Collect();
         }
 
@@ -529,6 +637,7 @@ namespace FMETP
                     Server.SupportMulticast = ServerSettings.SupportMulticast;
                     Server.MulticastAddress = ServerSettings.MulticastAddress;
 
+                    OnReceivedByteDataEvent.AddListener(Action_DecodeNetworkTransformView);
                     break;
                 case FMNetworkType.Client:
                     Client = this.gameObject.AddComponent<FMClient.FMClientComponent>();
@@ -548,14 +657,7 @@ namespace FMETP
                     Client.SupportMulticast = ClientSettings.SupportMulticast;
                     Client.MulticastAddress = ClientSettings.MulticastAddress;
 
-                    NetworkTransform = new FMNetworkTransform[NetworkObjects.Length];
-                    for (int i = 0; i < NetworkTransform.Length; i++)
-                    {
-                        NetworkTransform[i] = new FMNetworkTransform();
-                        NetworkTransform[i].position = Vector3.zero;
-                        NetworkTransform[i].rotation = Quaternion.identity;
-                        NetworkTransform[i].localScale = new Vector3(1f, 1f, 1f);
-                    }
+                    OnReceivedByteDataEvent.AddListener(Action_DecodeNetworkTransformView);
                     break;
                 case FMNetworkType.DataStream:
                     DataStream = this.gameObject.AddComponent<FMDataStream.FMDataStreamComponent>();
@@ -571,13 +673,28 @@ namespace FMETP
                     DataStream.TCPSocketType = DataStreamSettings.TCPSocketType;
                     DataStream.MulticastAddress = DataStreamSettings.MulticastAddress;
 
-                    //DataStream.ClientIP = DataStreamSettings.ClientIP;
                     DataStream.UseMainThreadSender = DataStreamSettings.UseMainThreadSender;
 
                     break;
             }
 
             Initialised = true;
+            UpdateNetworkedObjectOwnersStatus();
+        }
+
+        private void UpdateNetworkedObjectOwnersStatus()
+        {
+            if (NetworkType == FMNetworkType.Server || NetworkType == FMNetworkType.Client)
+            {
+                foreach (GameObject obj in networkedObjects)
+                {
+                    FMNetworkTransformView _view;
+                    if (!obj.TryGetComponent(out _view)) _view = obj.AddComponent<FMNetworkTransformView>();
+
+                    //by default, server is the master owner
+                    if (NetworkType == FMNetworkType.Server && initialised) _view.IsOwner = true;
+                }
+            }
         }
 
         private void Awake()
@@ -658,15 +775,9 @@ namespace FMETP
             if (!Initialised) return;
             switch (NetworkType)
             {
-                case FMNetworkType.Server:
-                    if (Server != null) Server.enabled = true;
-                    break;
-                case FMNetworkType.Client:
-                    if (Client != null) Client.enabled = true;
-                    break;
-                case FMNetworkType.DataStream:
-                    if (DataStream != null) DataStream.enabled = true;
-                    break;
+                case FMNetworkType.Server: if (Server != null) Server.enabled = true;  break;
+                case FMNetworkType.Client: if (Client != null) Client.enabled = true; break;
+                case FMNetworkType.DataStream: if (DataStream != null) DataStream.enabled = true; break;
             }
 
             needResetFromPaused = false;
@@ -677,15 +788,9 @@ namespace FMETP
             if (!Initialised) return;
             switch (NetworkType)
             {
-                case FMNetworkType.Server:
-                    if (Server != null) Server.enabled = false;
-                    break;
-                case FMNetworkType.Client:
-                    if (Client != null) Client.enabled = false;
-                    break;
-                case FMNetworkType.DataStream:
-                    if (DataStream != null) DataStream.enabled = false;
-                    break;
+                case FMNetworkType.Server: if (Server != null) Server.enabled = false; break;
+                case FMNetworkType.Client: if (Client != null) Client.enabled = false; break;
+                case FMNetworkType.DataStream: if (DataStream != null) DataStream.enabled = false; break;
             }
 
             needResetFromPaused = false;
@@ -695,76 +800,40 @@ namespace FMETP
         // Use this for initialization
         private void Start() { if (AutoInit) Init(); }
 
+        private float syncTimer = 0f;
+        private float syncFPS = 60f;
+        private void LateUpdate()
+        {
+            if (Initialised == false) return;
+
+            //network view sync(sender)
+            syncTimer += Time.deltaTime;
+            if (syncTimer > (1f / syncFPS))
+            {
+                syncTimer %= (1f / syncFPS);
+                DequeueTransformSyncData();
+            }
+        }
+
         // Update is called once per frame
         private void Update()
         {
             if (Initialised == false) return;
-            switch (NetworkType)
-            {
-                case FMNetworkType.Server:
-                    //====================Sync Network Object============================
-                    if (EnableNetworkObjectsSync)
-                    {
-                        if (Server.ConnectionCount > 0)
-                        {
-                            if (NetworkObjects.Length > 0)
-                            {
-                                //on sync fps changes, reset the timer..
-                                if (SyncFPS != SyncFPS_old)
-                                {
-                                    SyncFPS_old = SyncFPS;
-                                    SyncTimer = 0f;
-                                }
-
-                                SyncFrequency = 1f / SyncFPS;
-                                SyncTimer += Time.deltaTime;
-                                if (SyncTimer > SyncFrequency)
-                                {
-                                    Action_SendNetworkObjectTransform();
-                                    SyncTimer = SyncTimer % SyncFrequency;
-                                }
-                            }
-                        }
-                    }
-                    Server.ShowLog = ShowLog;
-                    //====================Sync Network Object============================
-                    ServerSettings.ConnectionCount = Server.ConnectionCount;
-                    break;
-                case FMNetworkType.Client:
-                    //====================Sync Network Object============================
-                    if (EnableNetworkObjectsSync)
-                    {
-                        if (Client.IsConnected)
-                        {
-                            if (NetworkObjects.Length > 0)
-                            {
-                                for (int i = 0; i < NetworkObjects.Length; i++)
-                                {
-                                    CurrentTimestamp += Time.deltaTime;
-                                    float step = (CurrentTimestamp - LastReceivedTimestamp) / (TargetTimestamp - LastReceivedTimestamp);
-                                    step = Mathf.Clamp(step, 0f, 1f);
-                                    NetworkObjects[i].transform.position = Vector3.Slerp(NetworkObjects[i].transform.position, NetworkTransform[i].position, step);
-                                    NetworkObjects[i].transform.rotation = Quaternion.Slerp(NetworkObjects[i].transform.rotation, NetworkTransform[i].rotation, step);
-                                    NetworkObjects[i].transform.localScale = Vector3.Slerp(NetworkObjects[i].transform.localScale, NetworkTransform[i].localScale, step);
-                                }
-                            }
-                        }
-                    }
-                    Client.ShowLog = ShowLog;
-                    //====================Sync Network Object============================
-                    ClientSettings.IsConnected = Client.IsConnected;
-                    break;
-                case FMNetworkType.DataStream:
-                    DataStream.ShowLog = ShowLog;
-                    DataStreamSettings.IsConnected = DataStream.IsConnected;
-                    break;
-            }
 
             updateDebugTextTimer += Time.deltaTime;
             if (updateDebugTextTimer > updateDebugTextThreshold)
             {
                 updateDebugTextTimer %= updateDebugTextThreshold;
                 UpdateDebugText();
+
+                //by default, those information will be updated via event
+                //in case something wrong, this is the fallback solution
+                switch (NetworkType)
+                {
+                    case FMNetworkType.Server: ServerSettings.ConnectionCount = Server.ConnectionCount; break;
+                    case FMNetworkType.Client: ClientSettings.IsConnected = Client.IsConnected; break;
+                    case FMNetworkType.DataStream: DataStreamSettings.IsConnected = DataStream.IsConnected; break;
+                }
             }
         }
 
@@ -848,6 +917,49 @@ namespace FMETP
         }
 
         #region SENDER MAPPING
+        public void SendFunctionToAll(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunction(FMSendType.All, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToServer(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunction(FMSendType.Server, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToOthers(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunction(FMSendType.Others, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToTargetIP(string inputTargetIP, string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunction(FMSendType.All, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToAllReliable(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunctionReliable(FMSendType.All, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToServerReliable(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunctionReliable(FMSendType.Server, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToOthersReliable(string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunctionReliable(FMSendType.Others, inputFunctionName, inputVariables);
+        }
+        public void SendFunctionToTargetIPReliable(string inputTargetIP, string inputFunctionName, object[] inputVariables = null)
+        {
+            SendFunctionReliable(FMSendType.All, inputFunctionName, inputVariables);
+        }
+        public void SendFunction(FMSendType inputSendType, string inputFunctionName, object[] inputVariables = null, string inputTargetIP = null)
+        {
+            FMNetworkFunction _fmfunction = new FMNetworkFunction(inputFunctionName, inputVariables);
+            Send(_fmfunction, inputSendType, inputTargetIP, false);
+        }
+        public void SendFunctionReliable(FMSendType inputSendType, string inputFunctionName, object[] inputVariables = null, string inputTargetIP = null)
+        {
+            FMNetworkFunction _fmfunction = new FMNetworkFunction(inputFunctionName, inputVariables);
+            Send(_fmfunction, inputSendType, inputTargetIP, true);
+        }
+
         public void StreamData(byte[] _byteData)
         {
             if (!Initialised) return;
@@ -932,7 +1044,95 @@ namespace FMETP
                 }
             }
         }
+        public void SendToTarget(FMNetworkFunction _fmfunction, string _targetIP, bool _reliable = false)
+        {
+            if (NetworkType == FMNetworkType.Server)
+            {
+                if (Server.ConnectedIPs.Contains(_targetIP))
+                {
+                    Send(_fmfunction, FMSendType.TargetIP, _targetIP, _reliable);
+                }
+                else
+                {
+                    if (_targetIP == ReadLocalIPAddress || _targetIP == "127.0.0.1" || _targetIP == "localhost")
+                    {
+                        OnReceivedNetworkFunction(_fmfunction);
+                    }
+                }
+            }
+            else
+            {
+                if (_targetIP == ReadLocalIPAddress || _targetIP == "127.0.0.1" || _targetIP == "localhost")
+                {
+                    OnReceivedNetworkFunction(_fmfunction);
+                }
+                else
+                {
+                    Send(_fmfunction, FMSendType.TargetIP, _targetIP, _reliable);
+                }
+            }
+        }
 
+        private void Send(FMNetworkFunction _fmfunction, FMSendType _type, string _targetIP, bool _reliable = false)
+        {
+            if (!Initialised) return;
+            if (NetworkType == FMNetworkType.Client && !Client.IsConnected) return;
+
+            string _stringData = JsonUtility.ToJson(_fmfunction, false);
+            if (NetworkType == FMNetworkType.Client)
+            {
+                if (Client.ForceBroadcast)
+                {
+                    if (_type == FMSendType.All) OnReceivedStringDataEvent.Invoke(_stringData);
+                    //_type = FMSendType.Server; //when broadcast mode enabled, force the send type to server, then it won't send twice to others
+                }
+            }
+
+            switch (_type)
+            {
+                case FMSendType.All:
+                    if (NetworkType == FMNetworkType.Server)
+                    {
+                        Server.Action_AddPacket(_stringData, _type, FMPacketDataType.networkFunction, _reliable);
+                        OnReceivedNetworkFunction(_fmfunction);
+                    }
+                    else
+                    {
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    break;
+                case FMSendType.Server:
+                    if (NetworkType == FMNetworkType.Server)
+                    {
+                        OnReceivedNetworkFunction(_fmfunction);
+                    }
+                    else
+                    {
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    break;
+                case FMSendType.Others:
+                    if (NetworkType == FMNetworkType.Server)
+                    {
+                        Server.Action_AddPacket(_stringData, _type, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    else
+                    {
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    break;
+                case FMSendType.TargetIP:
+                    if (NetworkType == FMNetworkType.Server)
+                    {
+                        if (_targetIP.Length > 6) Server.Action_AddPacket(_stringData, _targetIP, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    else
+                    {
+                        if (_targetIP.Length > 6) Client.Action_AddPacket(_stringData, _targetIP, FMPacketDataType.networkFunction, _reliable);
+                    }
+                    break;
+            }
+        }
         private void Send(byte[] _byteData, FMSendType _type, string _targetIP, bool _reliable = false)
         {
             if (!Initialised) return;
@@ -958,12 +1158,12 @@ namespace FMETP
                 case FMSendType.All:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        Server.Action_AddPacket(_byteData, _type, _reliable);
+                        Server.Action_AddPacket(_byteData, _type, FMPacketDataType.rawByte, _reliable);
                         OnReceivedByteDataEvent.Invoke(_byteData);
                     }
                     else
                     {
-                        Client.Action_AddPacket(_byteData, _type, _reliable);
+                        Client.Action_AddPacket(_byteData, _type, FMPacketDataType.rawByte, _reliable);
                     }
                     break;
                 case FMSendType.Server:
@@ -973,27 +1173,27 @@ namespace FMETP
                     }
                     else
                     {
-                        Client.Action_AddPacket(_byteData, _type, _reliable);
+                        Client.Action_AddPacket(_byteData, _type, FMPacketDataType.rawByte, _reliable);
                     }
                     break;
                 case FMSendType.Others:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        Server.Action_AddPacket(_byteData, _type, _reliable);
+                        Server.Action_AddPacket(_byteData, _type, FMPacketDataType.rawByte, _reliable);
                     }
                     else
                     {
-                        Client.Action_AddPacket(_byteData, _type, _reliable);
+                        Client.Action_AddPacket(_byteData, _type, FMPacketDataType.rawByte, _reliable);
                     }
                     break;
                 case FMSendType.TargetIP:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        if (_targetIP.Length > 4) Server.Action_AddPacket(_byteData, _targetIP, _reliable);
+                        if (_targetIP.Length > 4) Server.Action_AddPacket(_byteData, _targetIP, FMPacketDataType.rawByte, _reliable);
                     }
                     else
                     {
-                        if (_targetIP.Length > 4) Client.Action_AddPacket(_byteData, _targetIP, _reliable);
+                        if (_targetIP.Length > 4) Client.Action_AddPacket(_byteData, _targetIP, FMPacketDataType.rawByte, _reliable);
                     }
                     break;
             }
@@ -1018,12 +1218,12 @@ namespace FMETP
                 case FMSendType.All:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        Server.Action_AddPacket(_stringData, _type, _reliable);
+                        Server.Action_AddPacket(_stringData, _type, FMPacketDataType.stringData, _reliable);
                         OnReceivedStringDataEvent.Invoke(_stringData);
                     }
                     else
                     {
-                        Client.Action_AddPacket(_stringData, _type, _reliable);
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.stringData, _reliable);
                     }
                     break;
                 case FMSendType.Server:
@@ -1033,27 +1233,27 @@ namespace FMETP
                     }
                     else
                     {
-                        Client.Action_AddPacket(_stringData, _type, _reliable);
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.stringData, _reliable);
                     }
                     break;
                 case FMSendType.Others:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        Server.Action_AddPacket(_stringData, _type, _reliable);
+                        Server.Action_AddPacket(_stringData, _type, FMPacketDataType.stringData, _reliable);
                     }
                     else
                     {
-                        Client.Action_AddPacket(_stringData, _type, _reliable);
+                        Client.Action_AddPacket(_stringData, _type, FMPacketDataType.stringData, _reliable);
                     }
                     break;
                 case FMSendType.TargetIP:
                     if (NetworkType == FMNetworkType.Server)
                     {
-                        if (_targetIP.Length > 6) Server.Action_AddPacket(_stringData, _targetIP, _reliable);
+                        if (_targetIP.Length > 6) Server.Action_AddPacket(_stringData, _targetIP, FMPacketDataType.stringData, _reliable);
                     }
                     else
                     {
-                        if (_targetIP.Length > 6) Client.Action_AddPacket(_stringData, _targetIP, _reliable);
+                        if (_targetIP.Length > 6) Client.Action_AddPacket(_stringData, _targetIP, FMPacketDataType.stringData, _reliable);
                     }
                     break;
             }
