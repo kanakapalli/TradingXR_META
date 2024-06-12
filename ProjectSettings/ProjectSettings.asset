@@ -142,8 +142,6 @@ PlayerSettings:
   bundleVersion: 1.0
   preloadedAssets:
   - {fileID: 11400000, guid: 97203942fedd8a84ba0adeeb86c06188, type: 2}
-  - {fileID: 11400000, guid: 79fba0b15f5298d4b9d9ee0b339b9dec, type: 2}
-  - {fileID: -4690608088736970168, guid: 104b6aaacf6086240a6aa378d5cf4673, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -838,7 +836,7 @@ PlayerSettings:
   webGLMemoryGeometricGrowthCap: 96
   webGLPowerPreference: 2
   scriptingDefineSymbols:
-    Android: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OCULUS
+    Android: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OCULUS;FMETP_URP
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
