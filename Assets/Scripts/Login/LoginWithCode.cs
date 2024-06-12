@@ -95,7 +95,7 @@ public class LoginManager : MonoBehaviour
         if (request.result == UnityWebRequest.Result.Success)
         {
             PlayerPrefs.SetInt("_LogIn", 1);
-            //StartCoroutine(SceneAsync());
+            StartCoroutine(SceneAsync());
         }
     }
 

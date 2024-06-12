@@ -11,8 +11,17 @@ public class Palm_Menu_Controller : MonoBehaviour
     public GameObject settingsScreen;
     public GameObject assistScreen;
 
+    [SerializeField] GameObject[] login_settings = new GameObject[2];
+
     // Dictionary to hold the screens for easy access
     private Dictionary<string, GameObject> screens;
+
+    private int m_Logged_In;
+
+    private void Awake()
+    {
+        m_Logged_In = PlayerPrefs.GetInt("_LogIn");
+    }
 
     // Start is called before the first frame update
     void Start()
@@ -22,18 +31,30 @@ public class Palm_Menu_Controller : MonoBehaviour
         {
             { "stock", stockScreen },
             { "widget", widgetScreen },
+            { "login", loginScreen },
             { "settings", settingsScreen },
             { "assist", assistScreen }
         };
 
         // Deactivate all screens at the start
         DeactivateAllScreens();
+        ConfirmLogin();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void ConfirmLogin()
     {
-
+        if(m_Logged_In == 1)
+        {
+            //Already Logged In
+            login_settings[0].SetActive(false);
+            login_settings[1].SetActive(true);
+        }
+        else
+        {
+            //Need To Be Logged In
+            login_settings[0].SetActive(true);
+            login_settings[1].SetActive(false);
+        }
     }
 
     // Deactivate all screens
