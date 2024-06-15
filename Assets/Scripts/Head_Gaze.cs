@@ -17,8 +17,6 @@ public class HeadGaze : MonoBehaviour
     [SerializeField] private SkinnedMeshRenderer m_Left_Renderer;
     [SerializeField] private SkinnedMeshRenderer m_Right_Renderer;
 
-    public TMP_Text m_DebugArea;
-
     private GameObject cursorInstance;
 
     private List<GameObject> tabFocused = new List<GameObject>();
@@ -44,7 +42,7 @@ public class HeadGaze : MonoBehaviour
     private void ApplyMaterial(SkinnedMeshRenderer renderer, Material material)
     {
         Material[] materials = renderer.materials;
-        if (materials.Length > 1) // Ensure the array has the correct length
+        /*if (materials.Length > 1) // Ensure the array has the correct length
         {
             materials[1] = material;
             renderer.materials = materials; // Assign the updated materials array back
@@ -52,7 +50,9 @@ public class HeadGaze : MonoBehaviour
         else
         {
             Debug.LogWarning("The materials array does not have the expected length.");
-        }
+        }*/
+        materials[0] = material;
+        renderer.materials = materials; // Assign the updated materials array back
     }
 
     private void MoveCamera()
@@ -98,21 +98,23 @@ public class HeadGaze : MonoBehaviour
             DeletableObject deletableObject = hit.collider.GetComponent<DeletableObject>();
             if (deletableObject != null && deletableObject.CanBeDeleted())
             {
-                TurnOffBorderTargets();
                 Transform m_collided = hit.collider.gameObject.transform;
-                GameObject tab = m_collided.GetChild(m_collided.childCount - 1).gameObject; //Detects the last child
-                tab.SetActive(true);
-                tabFocused.Add(tab);
+                GameObject tab = m_collided.GetChild(m_collided.childCount - 1).gameObject; // Detects the last child
+
+                if (!tabFocused.Contains(tab))
+                {
+                    TurnOffBorderTargets();
+                    tab.SetActive(true);
+                    tabFocused.Add(tab);
+                }
             }
             else
             {
-                // Destroy the cursor instance
                 TurnOffBorderTargets();
             }
         }
         else
         {
-            // Destroy the cursor instance
             TurnOffBorderTargets();
         }
     }
@@ -142,8 +144,7 @@ public class HeadGaze : MonoBehaviour
     public void ToggleHeadGaze()
     {
         m_HeadGazeActivate = !m_HeadGazeActivate;
-        m_DebugArea.text = "Clicked Gaze Button";
-        /*TurnOffBorderTargets();*/
+        TurnOffBorderTargets();
     }
 
     private void TurnOffBorderTargets()
@@ -151,7 +152,7 @@ public class HeadGaze : MonoBehaviour
         foreach (GameObject obj in tabFocused)
         {
             obj.SetActive(false);
-            tabFocused.Remove(obj);
         }
+        tabFocused.Clear();
     }
 }

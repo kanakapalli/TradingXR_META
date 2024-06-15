@@ -1,3 +1,4 @@
+using Meta.WitAi.Utilities;
 using Oculus.Interaction;
 using System;
 using System.Collections;
@@ -13,48 +14,56 @@ public class Vuplex_Tab : MonoBehaviour
     [SerializeField] internal string m_Detail_Url;
 
     private float previousScale;
+    private float previousScaleX;
+    private float previousScaleY;
     private float normalScale = 1.0f;
 
     private void Start()
     {
-        previousScale = GetOverallScale();
+        previousScaleX = GetOverallScale().x;
+        previousScaleY = GetOverallScale().y;
+        previousScale = GetOverallScale().ratio;
     }
 
-    private void LateUpdate()
+    private void Update()
     {
         CheckScale();
     }
 
     private void CheckScale()
     {
-        float currentScale = GetOverallScale();
+        float currentScaleX = GetOverallScale().x;
+        float currentScaleY = GetOverallScale().y;
+        float currentScale = GetOverallScale().ratio;
 
-        if (currentScale != previousScale)
+        if (currentScale != previousScale || currentScaleX != previousScaleX || currentScaleY != previousScaleY)
         {
-            if (currentScale >= 1.5f)
+            if (currentScale >= 1.5f || currentScaleX >= 1.5f || currentScaleY >= 1.5f)
             {
-                // Scale has increased beyond or equal to 1.5
+                // Scale has increased beyond or equal to 1.5 in any axis
                 ChangeURLMode(true);
             }
-            else if (currentScale > 0.4f && currentScale < 1.5f)
+            else if ((currentScale > 0.4f && currentScale < 1.5f) || (currentScaleX > 0.4f && currentScaleX < 1.5f) || (currentScaleY > 0.4f && currentScaleY < 1.5f))
             {
-                // Scale is between 0.4 and 1.5
+                // Scale is between 0.4 and 1.5 in any axis
                 ChangeURLMode(false);
             }
-            else if (currentScale <= 0.4f)
+            else if (currentScale <= 0.4f || currentScaleX <= 0.4f || currentScaleY <= 0.4f)
             {
-                // Scale has become less than or equal to 0.4
+                // Scale has become less than or equal to 0.4 in any axis
                 Destroy(gameObject, 2f);
             }
 
             previousScale = currentScale;
+            previousScaleX = currentScaleX;
+            previousScaleY = currentScaleY;
         }
     }
 
-    private float GetOverallScale()
+    private ScaleStructure GetOverallScale()
     {
         Vector3 localScale = transform.localScale;
-        return localScale.x * localScale.y;
+        return new ScaleStructure { x = localScale.x, y = localScale.y, ratio = localScale.x * localScale.y };
     }
 
     internal void ChangeURLMode(bool m_config)
@@ -75,5 +84,10 @@ public class Vuplex_Tab : MonoBehaviour
         m_CanvasWebView.WebView.LoadUrl(m_url);
         yield return new WaitForSeconds(1f);
         m_CanvasWebView.WebView.Reload();
+    }
+
+    struct ScaleStructure
+    {
+        public float x, y, ratio;
     }
 }

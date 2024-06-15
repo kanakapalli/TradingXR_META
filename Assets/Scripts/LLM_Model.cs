@@ -66,6 +66,12 @@ public class LLM_Model
                 // If the request was not successful, print the status code and reason
                 Debug.Log("Request failed with status code: " + response.StatusCode);
                 Debug.Log("Reason: " + response.ReasonPhrase);
+
+                LLM m_LLM_Error_Response = new LLM
+                {
+                    result = response.StatusCode + " \n " + response.ReasonPhrase
+                };
+                return m_LLM_Error_Response;
             }
 
             return new LLM { };
