@@ -42,7 +42,7 @@ public class HeadGaze : MonoBehaviour
     private void ApplyMaterial(SkinnedMeshRenderer renderer, Material material)
     {
         Material[] materials = renderer.materials;
-        /*if (materials.Length > 1) // Ensure the array has the correct length
+        if (materials.Length > 1) // Ensure the array has the correct length
         {
             materials[1] = material;
             renderer.materials = materials; // Assign the updated materials array back
@@ -50,9 +50,9 @@ public class HeadGaze : MonoBehaviour
         else
         {
             Debug.LogWarning("The materials array does not have the expected length.");
-        }*/
-        materials[0] = material;
-        renderer.materials = materials; // Assign the updated materials array back
+        }
+        /*materials[0] = material;
+        renderer.materials = materials; // Assign the updated materials array back*/
     }
 
     private void MoveCamera()

@@ -21,6 +21,7 @@ public class Listener : MonoBehaviour
 
     [Header("LLM Model Modifications")]
     [SerializeField] List<MeshRenderer> m_LLM_Mesh_Model = new List<MeshRenderer>();
+    [SerializeField] GameObject m_LLM_3D_Model;
     [SerializeField] Material m_LLM_Default_Material;
     [SerializeField] Material m_LLM_Thinking_Material;
     [SerializeField] Text m_LLM_Text;
@@ -175,6 +176,7 @@ public class Listener : MonoBehaviour
             ColorChangeLLMModel(m_LLM_Default_Material);
             m_TTSSpeaker.Speak(m_response);
             m_LLM_Text.text = m_response;
+            m_LLM_3D_Model.SetActive(false);
             Debug.Log("<color=red>Intent Not Found Action Method Triggered</color>");
         }
         else

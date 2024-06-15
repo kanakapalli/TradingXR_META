@@ -31340,13 +31340,13 @@ MonoBehaviour:
       Value: 0.7
     MaxX:
       Constrain: 1
-      Value: 5
+      Value: 4
     MinY:
       Constrain: 0
       Value: 0.7
     MaxY:
       Constrain: 1
-      Value: 5
+      Value: 4
     MinZ:
       Constrain: 1
       Value: 1

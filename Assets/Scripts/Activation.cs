@@ -14,7 +14,7 @@ public class Activation : MonoBehaviour
     [SerializeField] private Animator _animator;
     [SerializeField] private Text _response_text;
     [SerializeField] private Image _background;
-    [SerializeField] private float _padding = 10f;
+    [SerializeField] private float _padding = 30f;
 
     private bool _mic_activation = false;
 
@@ -23,19 +23,26 @@ public class Activation : MonoBehaviour
         DynamicBackground();
         if (Input.GetKey(KeyCode.Space))
         {
-             // _dictation.ActivateImmediately();
-             ActivateIMID();
+            // _dictation.ActivateImmediately();
+            ActivateIMID();
         }
     }
 
     private void DynamicBackground()
     {
-        int lineCount = _response_text.cachedTextGenerator.lines.Count;
-        float lineHeight = _response_text.fontSize * _response_text.lineSpacing + _padding;
-        float totalHeight = lineHeight * lineCount + _padding;
-
+        // Get the width and height required by the text
+        Vector2 textSize = GetTextSize(_response_text);
         RectTransform bgRect = _background.rectTransform;
-        bgRect.sizeDelta = new Vector2(bgRect.sizeDelta.x, totalHeight);
+        bgRect.sizeDelta = new Vector2(textSize.x + _padding * 2, textSize.y + _padding);
+    }
+
+    private Vector2 GetTextSize(Text text)
+    {
+        TextGenerator textGen = new TextGenerator();
+        TextGenerationSettings generationSettings = text.GetGenerationSettings(text.rectTransform.rect.size);
+        float width = textGen.GetPreferredWidth(text.text, generationSettings) / text.pixelsPerUnit;
+        float height = textGen.GetPreferredHeight(text.text, generationSettings) / text.pixelsPerUnit;
+        return new Vector2(width, height);
     }
 
     public void ToggleActivation()
