@@ -15,6 +15,7 @@ public class Activation : MonoBehaviour
     [SerializeField] private Text _response_text;
     [SerializeField] private Image _background;
     [SerializeField] private float _padding = 30f;
+    [SerializeField] private Canvas _canvas; // Add reference to the canvas
 
     private bool _mic_activation = false;
 
@@ -33,7 +34,30 @@ public class Activation : MonoBehaviour
         // Get the width and height required by the text
         Vector2 textSize = GetTextSize(_response_text);
         RectTransform bgRect = _background.rectTransform;
-        bgRect.sizeDelta = new Vector2(textSize.x + _padding * 2, textSize.y + _padding);
+
+        // Get the width and height of the canvas
+        RectTransform canvasRect = _canvas.GetComponent<RectTransform>();
+        float canvasWidth = canvasRect.rect.width;
+        float canvasHeight = canvasRect.rect.height;
+
+        // Calculate the new width and height with padding
+        float newWidth = textSize.x + (_padding / 2);
+        float newHeight = textSize.y + (_padding / 2);
+
+        // Ensure the new width does not exceed the canvas width
+        if (newWidth > canvasWidth)
+        {
+            newWidth = canvasWidth - _padding; // Adjust to fit within the canvas width
+        }
+
+        // Ensure the new height does not exceed the canvas height
+        if (newHeight > canvasHeight)
+        {
+            newHeight = canvasHeight - _padding; // Adjust to fit within the canvas height
+        }
+
+        // Set the background size
+        bgRect.sizeDelta = new Vector2(newWidth, newHeight);
     }
 
     private Vector2 GetTextSize(Text text)
