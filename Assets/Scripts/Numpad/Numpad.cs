@@ -49,10 +49,10 @@ public class Numpad : MonoBehaviour
         zeroButton.transform.localPosition = new Vector3(startX, startY - numRows * (buttonHeight + buttonSpacing), 0);
 
         // Spawn X button at the bottom right side
-        GameObject deleteButton = Instantiate(buttonPrefab, parentTransform);
+        /*GameObject deleteButton = Instantiate(buttonPrefab, parentTransform);
         deleteButton.GetComponentInChildren<TMP_Text>().text = "X";
         deleteButton.GetComponent<Button>().onClick.AddListener(OnDeleteButtonClick);
-        deleteButton.transform.localPosition = new Vector3(startX + (numColumns - 1) * (buttonWidth + buttonSpacing), startY - numRows * (buttonHeight + buttonSpacing), 0);
+        deleteButton.transform.localPosition = new Vector3(startX + (numColumns - 1) * (buttonWidth + buttonSpacing), startY - numRows * (buttonHeight + buttonSpacing), 0);*/
     }
 
     void OnNumberButtonClick(string number)
@@ -60,7 +60,7 @@ public class Numpad : MonoBehaviour
         inputField.text += number;
     }
 
-    void OnDeleteButtonClick()
+    public void OnDeleteButtonClick()
     {
         if (inputField.text.Length > 0)
         {

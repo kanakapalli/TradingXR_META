@@ -12,4 +12,15 @@ public class My_Profile : ScriptableObject
     [SerializeField] internal string m_Office;
     [SerializeField] internal string m_Bio;
     [SerializeField] internal string m_Thread;
+
+    public void Clear()
+    {
+        m_Token = "";
+        m_ProfileName = "";
+        m_Age = 0;
+        m_Email = "";
+        m_Office = "";
+        m_Bio = "";
+        m_Thread = "";
+    }
 }
