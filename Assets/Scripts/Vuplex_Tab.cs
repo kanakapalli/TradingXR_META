@@ -14,9 +14,11 @@ public class Vuplex_Tab : MonoBehaviour
     [SerializeField] internal LayerMask wallLayerMask;
     [SerializeField] internal Transform raycastOrigin;
     [SerializeField] internal float rangeDistance;
+    [SerializeField] internal GameObject cursorPrefab; // Add this line
 
     private float previousScale;
     private float normalScale = 1.0f;
+    private GameObject spawnedCursor; // Add this line
 
     private void Start()
     {
@@ -95,6 +97,7 @@ public class Vuplex_Tab : MonoBehaviour
             if (hit.collider.CompareTag("Wall"))
             {
                 AlignWithWall(hit.point, hit.normal);
+                SpawnCursor(hit.point); // Add this line
             }
         }
     }
@@ -104,5 +107,16 @@ public class Vuplex_Tab : MonoBehaviour
         // Snap to the wall at the collision point and align with the wall's normal
         transform.position = collisionPoint;
         transform.rotation = Quaternion.LookRotation(-collisionNormal, Vector3.up);
+    }
+
+    private void SpawnCursor(Vector3 position)
+    {
+        // Destroy the old cursor if it exists
+        if (spawnedCursor != null)
+        {
+            Destroy(spawnedCursor);
+        }
+        // Instantiate a new cursor at the given position
+        spawnedCursor = Instantiate(cursorPrefab, position, Quaternion.identity);
     }
 }

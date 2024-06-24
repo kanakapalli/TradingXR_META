@@ -31510,6 +31510,7 @@ MonoBehaviour:
     m_Bits: 128
   raycastOrigin: {fileID: 977115698760473396}
   rangeDistance: 100
+  cursorPrefab: {fileID: 3366140567716989601, guid: 2afeb90d06ecf19438eec3736826dd13, type: 3}
 --- !u!114 &-4574708770359547932
 MonoBehaviour:
   m_ObjectHideFlags: 0
