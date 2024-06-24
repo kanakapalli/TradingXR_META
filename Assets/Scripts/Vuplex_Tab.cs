@@ -11,6 +11,9 @@ public class Vuplex_Tab : MonoBehaviour
 
     [SerializeField] internal string m_Overview_Url;
     [SerializeField] internal string m_Detail_Url;
+    [SerializeField] internal LayerMask wallLayerMask;
+    [SerializeField] internal Transform raycastOrigin;
+    [SerializeField] internal float rangeDistance;
 
     private float previousScale;
     private float normalScale = 1.0f;
@@ -23,6 +26,7 @@ public class Vuplex_Tab : MonoBehaviour
     private void LateUpdate()
     {
         CheckScale();
+        CheckCollisionWithWall();
     }
 
     private void CheckScale()
@@ -75,5 +79,30 @@ public class Vuplex_Tab : MonoBehaviour
         m_CanvasWebView.WebView.LoadUrl(m_url);
         yield return new WaitForSeconds(1f);
         m_CanvasWebView.WebView.Reload();
+    }
+
+    private void CheckCollisionWithWall()
+    {
+        if (raycastOrigin == null)
+        {
+            Debug.LogError("Raycast origin is not assigned.");
+            return;
+        }
+
+        RaycastHit hit;
+        if (Physics.Raycast(raycastOrigin.position, -raycastOrigin.forward, out hit, rangeDistance, wallLayerMask))
+        {
+            if (hit.collider.CompareTag("Wall"))
+            {
+                AlignWithWall(hit.point, hit.normal);
+            }
+        }
+    }
+
+    private void AlignWithWall(Vector3 collisionPoint, Vector3 collisionNormal)
+    {
+        // Snap to the wall at the collision point and align with the wall's normal
+        transform.position = collisionPoint;
+        transform.rotation = Quaternion.LookRotation(-collisionNormal, Vector3.up);
     }
 }
