@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Oculus.Interaction;
 using UnityEngine;
 
 public class LLM_Model
@@ -67,14 +68,62 @@ public class LLM_Model
                 Debug.Log("Request failed with status code: " + response.StatusCode);
                 Debug.Log("Reason: " + response.ReasonPhrase);
 
+                string m_result = "";
+
+                switch (response.StatusCode)
+                {
+                    case System.Net.HttpStatusCode.OK:
+                        Debug.Log("Success");
+                        m_result = response.StatusCode + ": Status Ok";
+                        break;
+                    case System.Net.HttpStatusCode.MovedPermanently:
+                        Debug.Log("Permanent Redirect");
+                        m_result = response.StatusCode + ": MovedPermanently";
+                        break;
+                    case System.Net.HttpStatusCode.Found:
+                        Debug.Log("Temporary Redirect");
+                        m_result = response.StatusCode + ": Found";
+                        break;
+                    case System.Net.HttpStatusCode.NotModified:
+                        Debug.Log("Not Modified");
+                        m_result = response.StatusCode + ": Not Modified";
+                        break;
+                    case System.Net.HttpStatusCode.BadRequest:
+                        Debug.Log("Bad Request");
+                        m_result = response.StatusCode + ": Bad Request";
+                        break;
+                    case System.Net.HttpStatusCode.Unauthorized:
+                        Debug.Log("Unauthorized Error");
+                        m_result = response.StatusCode + ": Unauthorized";
+                        break;
+                    case System.Net.HttpStatusCode.Forbidden:
+                        Debug.Log("Forbidden");
+                        m_result = response.StatusCode + ": Forbidden";
+                        break;
+                    case System.Net.HttpStatusCode.NotFound:
+                        Debug.Log("Not Found");
+                        m_result = response.StatusCode + ": Not Found";
+                        break;
+                    case System.Net.HttpStatusCode.InternalServerError:
+                        Debug.Log("Internal Server Error");
+                        m_result = response.StatusCode + ": Internal Server Error";
+                        break;
+                    case System.Net.HttpStatusCode.NotImplemented:
+                        Debug.Log("Not Implemented");
+                        m_result = response.StatusCode + ": Not Implemented";
+                        break;
+                    default:
+                        Debug.Log("Unhandled status code: " + response.StatusCode);
+                        break;
+                }
+
                 LLM m_LLM_Error_Response = new LLM
                 {
-                    result = response.StatusCode + " \n " + response.ReasonPhrase
+                    // result = response.StatusCode + " \n " + response.ReasonPhrase
+                    result = m_result
                 };
                 return m_LLM_Error_Response;
             }
-
-            return new LLM { };
         }
     }
 }

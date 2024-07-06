@@ -37,7 +37,7 @@ public class Vuplex_Tab : MonoBehaviour
 
         if (currentScale != previousScale)
         {
-            if (currentScale >= 1.5f)
+            if (currentScale >= 1.15f)
             {
                 // Scale has increased beyond or equal to 1.5
                 ChangeURLMode(true);

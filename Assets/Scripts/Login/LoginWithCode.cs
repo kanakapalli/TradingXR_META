@@ -11,6 +11,11 @@ public class LoginManager : MonoBehaviour
     [SerializeField] TMP_InputField _login_InputField;
     [SerializeField] Button _login_Button;
     [SerializeField] TMP_Text _login_Status;
+    [SerializeField] ParticleSystem _login_Particle;
+    [SerializeField] Palm_Menu_Controller _menu_Controller;
+    [SerializeField] GameObject _loginButton;
+    [SerializeField] GameObject _settingsButton;
+    [SerializeField] Settings _settings;
 
     [System.Serializable]
     public class User
@@ -75,15 +80,32 @@ public class LoginManager : MonoBehaviour
 
     IEnumerator SceneAsync()
     {
+        StartCoroutine(PlayParticles());
         yield return new WaitForSeconds(1f);
-        SceneManager.LoadSceneAsync("MainScene");
+        //SceneManager.LoadSceneAsync("MainScene");
+        _menu_Controller.DeactivateAllScreens();
+        _menu_Controller.ConfirmLogin();
+        _menu_Controller.ToggleScreen("settings");
+        _settings.LoadSettingsData();
+        _loginButton.SetActive(false);
+        _settingsButton.SetActive(true);
     }
 
     void Start()
     {
+        _login_Particle.gameObject.SetActive(false);
+
         _login_Button.onClick.AddListener(() =>
         {
             StartCoroutine(LoginWithCode());
         });
+    }
+
+    IEnumerator PlayParticles()
+    {
+        _login_Particle.gameObject.SetActive(true);
+        _login_Particle.Play();
+        yield return new WaitForSeconds(5f);
+        _login_Particle.gameObject.SetActive(false);
     }
 }

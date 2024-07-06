@@ -41,7 +41,7 @@ public class Palm_Menu_Controller : MonoBehaviour
         ConfirmLogin();
     }
 
-    private void ConfirmLogin()
+    public void ConfirmLogin()
     {
         if(m_Logged_In == 1)
         {

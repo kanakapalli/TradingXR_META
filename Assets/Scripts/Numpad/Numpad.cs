@@ -43,10 +43,10 @@ public class Numpad : MonoBehaviour
         }
 
         // Spawn 0 button at the bottom left side
-        GameObject zeroButton = Instantiate(buttonPrefab, parentTransform);
+        /*GameObject zeroButton = Instantiate(buttonPrefab, parentTransform);
         zeroButton.GetComponentInChildren<TMP_Text>().text = "0";
         zeroButton.GetComponent<Button>().onClick.AddListener(() => OnNumberButtonClick("0"));
-        zeroButton.transform.localPosition = new Vector3(startX, startY - numRows * (buttonHeight + buttonSpacing), 0);
+        zeroButton.transform.localPosition = new Vector3(startX, startY - numRows * (buttonHeight + buttonSpacing), 0);*/
 
         // Spawn X button at the bottom right side
         /*GameObject deleteButton = Instantiate(buttonPrefab, parentTransform);
@@ -66,5 +66,10 @@ public class Numpad : MonoBehaviour
         {
             inputField.text = inputField.text.Substring(0, inputField.text.Length - 1);
         }
+    }
+
+    public void OnZeroButtonClicked()
+    {
+        OnNumberButtonClick("0");
     }
 }
