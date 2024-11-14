@@ -847,6 +847,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Android: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OCULUS;FMETP_URP
+    Standalone: VUPLEX_OCULUS_PROJECT_CONFIG;VUPLEX_OCULUS
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
